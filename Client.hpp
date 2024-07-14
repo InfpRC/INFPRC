@@ -28,7 +28,7 @@ class Client {
 		void setRecvBuf(std::string message);
 		void setSendBuf(std::string message);
 
-		int getFd() const;
+		int const &getFd() const;
 		std::string const &getNickname() const;
 		std::string const &getUsername() const;
 		std::string getRecvBuf() const;

@@ -18,9 +18,10 @@ void Server::run() {
 			if (static_cast<int>(event.ident) == serv.getFd()) {
 				int clnt_sock = serv.acceptSock();
 				// 클라 접속
-				//channel.initClient(clnt_sock);
-				//kq.addEvent(clnt_sock, EVFILT_READ);
-				std::cout << "connected client: " << clnt_sock << std::endl;
+				kq.addEvent(clnt_sock, EVFILT_READ);
+				send(clnt_sock, "Welcome to the server!\nEnterYourNickname", 23, 0);
+
+				//std::cout << "connected client: " << clnt_sock << std::endl;
 			} else if (event.filter == EVFILT_READ) {
 				// 클라 메시지 수신
 				//Client &clnt = channel.getClient(event.ident);
@@ -48,11 +49,47 @@ void Server::run() {
 	close(serv.getFd());
 }
 
+void Server::addClient(std::string nickname, Client *clnt) {
+	clients.insert(std::pair<std::string, Client *>(nickname, clnt));
+}
+
+void Server::delClient(std::string nickname) {
+	Client *clnt = clients.find(nickname)->second;
+	clients.erase(nickname);
+	delete clnt;
+}
+
+int const &Server::getClientFd(std::string nickname) const {
+	Client *clnt = clients.find(nickname)->second;
+	return clnt->getFd();
+}
+
+void Server::addChannel(std::string name, Channel *channel) {
+	channels.insert(std::pair<std::string, Channel *>(name, channel));
+}
+
+void Server::delChannel(std::string name) {
+	Channel *channel = channels.find(name)->second;
+	channels.erase(name);
+	delete channel;
+}
+
+void Server::addClientToChannel(std::string channel, int fd, int chanops) {
+	Channel *chan = channels.find(channel)->second;
+	chan->addClient(fd, chanops);
+}
+
+void Server::delClientFromChannel(std::string channel, int fd) {
+	Channel *chan = channels.find(channel)->second;
+	chan->delClient(fd);
+}
+
 void Server::echoService(Client &clnt) {
 	clnt.setSendBuf(clnt.getRecvBuf());
 	clnt.clearRecvBuf();
 	kq.addEvent(clnt.getFd(), EVFILT_WRITE);
 }
+
 
 void Server::channelService(Client &clnt) {
 	//std::string message = clnt.getRecvBuf();

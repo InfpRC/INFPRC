@@ -1,18 +1,42 @@
 
 #include "Channel.hpp"
 
-Channel::Channel() {}
+Channel::Channel(std::string const &name, std::string const &topic, std::string const &mode) {
+	_name = name;
+	_topic = topic;
+	_mode = mode;
+}
 
 Channel::~Channel() {}
 
-void Channel::initClient(int fd) {
-	insert(std::make_pair(fd, Client(fd)));
+void Channel::setName(std::string const &name) {
+	_name = name;
+}
+
+void Channel::setTopic(std::string const &topic) {
+	_topic = topic;
+}
+
+void Channel::setMode(std::string const &mode) {
+	_mode = mode;
+}
+
+void Channel::addClient(int fd, int chanops) {
+	_clients[fd] = chanops;
 }
 
 void Channel::delClient(int fd) {
-	erase(fd);
+	_clients.erase(fd);
 }
 
-Client &Channel::getClient(int fd) {
-	return find(fd)->second;
+std::string const &Channel::getName() const {
+	return _name;
+}
+
+std::string const &Channel::getTopic() const {
+	return _topic;
+}
+
+std::string const &Channel::getMode() const {
+	return _mode;
 }

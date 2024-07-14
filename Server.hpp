@@ -3,6 +3,8 @@
 #define SERVER_HPP
 
 #include <map>
+#include <string>
+#include <algorithm>
 
 #include "Socket.hpp"
 #include "Client.hpp"
@@ -24,14 +26,19 @@ class Server {
 		~Server();
 
 		void run();
-		void addClient(std::string _id, Client *_clnt);
-		void delClient(std::string _id);
-		void addChannel(std::string _id, Channel *_channel);
-		void delChannel(std::string _id);
-		void addClientToChannel(std::string _channel_id, std::string _client_id);
-		void delClientFromChannel(std::string _channel_id, std::string _client_id);
-		void sendToChannel(std::string _channel_id, std::string _message);
-		void sendToClient(std::string _client_id, std::string _message);
+		void addClient(std::string nickname, Client *clnt);
+		void delClient(std::string nickname);
+
+		int const &getClientFd(std::string nickname) const;
+
+		void addChannel(std::string name, Channel *channel);
+		void delChannel(std::string name);
+
+		void addClientToChannel(std::string channel, int fd, int chanops);
+		void delClientFromChannel(std::string channel, int fd);
+
+		void sendToChannel(std::string channel, std::string message);
+		void sendToClient(std::string nickname, std::string message);
 		void sendToAll(std::string _message);
 		
 };

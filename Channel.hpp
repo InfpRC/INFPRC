@@ -6,16 +6,29 @@
 
 #include "Client.hpp"
 
-class Channel : public std::map< int, Client > {
+
+class Channel {
 	private:
+		std::string _name;
+		std::string _topic;
+		std::string _mode;
+		std::map<int, int> _clients; // fd, operator
+		Channel();
+
 
 	public:
-		Channel();
+		Channel(std::string const &name, std::string const &topic, std::string const &mode);
 		~Channel();
 
-		void initClient(int fd);
+		void setName(std::string const &name);
+		void setTopic(std::string const &topic);
+		void setMode(std::string const &mode);
+		void addClient(int fd, int chanops);
 		void delClient(int fd);
-		Client &getClient(int fd);
+
+		std::string const &getName() const;
+		std::string const &getTopic() const;
+		std::string const &getMode() const;
 };
 
 #endif

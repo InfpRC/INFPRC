@@ -21,7 +21,7 @@ std::string const &Client::getUsername() const {
 	return _username;
 }
 
-int Client::getFd() const {
+int const &Client::getFd() const {
 	return _fd;
 }
 
