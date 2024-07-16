@@ -41,11 +41,12 @@ void Server::run()
 					std::string message = clnt->getRecvBuf();
 					std::string nickname = clnt->getNickname();
 					std::string username = clnt->getUsername();
+					std::string realname = clnt->getRealname();
 					if (nickname == "")
 					{
 						setClientNickname(clnt, message);
 					}
-					else if (username == "")
+					else if (username == "" || realname == "")
 					{
 						setClientUsername(clnt, message);
 					}
@@ -137,13 +138,18 @@ void Server::setClientNickname(Client *clnt, std::string message)
 
 void Server::setClientUsername(Client *clnt, std::string message)
 {
+	// 일단 USER username realname\r\n 형식으로 받아서 처리
 	std::string command = message.substr(0, message.find(" "));
-	std::string content = message.substr(message.find(" ") + 1);
-	content = content.substr(0, content.find("\r\n"));
-	if (command == "USER")
+	std::string username = message.substr(message.find(" ") + 1);
+	std::string realname = username.substr(username.find(" ") + 1);
+	username = username.substr(0, username.find(" "));
+	realname = realname.substr(0, realname.find("\r\n"));
+	if (command == "USER" && username != "" && realname != "")
 	{
-		std::cout << "username: " << content << std::endl;
-		clnt->setUsername(content);
+		std::cout << "username: " << username << std::endl;
+		std::cout << "realname: " << realname << std::endl;
+		clnt->setUsername(username);
+		clnt->setRealname(realname);
 		send(clnt->getFd(), "Hello, ", 7, 0);
 		send(clnt->getFd(), clnt->getNickname().c_str(), clnt->getNickname().size(), 0);
 		send(clnt->getFd(), "\n", 1, 0);
