@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+
 #define BUFFER_SIZE 100
 #define END 0
 #define CONTINUE 1
@@ -27,12 +28,14 @@ public:
 
 	void setNickname(std::string const &nickname);
 	void setUsername(std::string const &username);
+	void setRealname(std::string const &realname);
 	void setRecvBuf(std::string message);
 	void setSendBuf(std::string message);
 
 	int const &getFd() const;
 	std::string const &getNickname() const;
 	std::string const &getUsername() const;
+	std::string const &getRealname() const;
 	std::string getRecvBuf() const;
 	std::string getSendBuf() const;
 

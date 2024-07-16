@@ -67,9 +67,16 @@ void Server::run()
 						}
 						else if (command == "PRIVMSG")
 						{
-							std::string channel = content.substr(0, content.find(" "));
+							std::string target = content.substr(0, content.find(" "));
 							std::string message = content.substr(content.find(" ") + 1);
-							sendToChannel(clnt, channel, message);
+							if (target[0] == '#')
+							{
+								sendToChannel(clnt, target.substr(1), message);
+							}
+							else
+							{
+								sendToClient(clnt, target, message);
+							}
 						}
 					}
 					clnt->clearRecvBuf();
@@ -153,7 +160,7 @@ void Server::joinChannel(Client *clnt, std::string channel)
 	{
 		Channel *chan = new Channel(channel);
 		addChannel(chan);
-		addClientToChannel(channel, clnt->getFd(), 1);
+		addClientToChannel(channel, clnt, 1);
 	}
 	else
 	{
@@ -181,11 +188,18 @@ void Server::sendToChannel(Client *sender, std::string const &channel, std::stri
 	std::map<std::string, Channel *>::iterator it = _channels.find(channel);
 	if (it == _channels.end())
 	{
-		std::cout << "channel not found" << std::endl;
+		sender->setSendBuf("Channel not found\n");
+		kq.addEvent(sender->getFd(), EVFILT_WRITE);
 		return;
 	}
 	Channel *chan = it->second;
 	std::map<int, int> members = chan->getClients();
+	if (members.find(sender->getFd()) == members.end())
+	{
+		sender->setSendBuf("You are not in the channel\n");
+		kq.addEvent(sender->getFd(), EVFILT_WRITE);
+		return;
+	}
 	std::map<int, int>::const_iterator mem_it = members.begin();
 	while (mem_it != members.end())
 	{
@@ -193,11 +207,28 @@ void Server::sendToChannel(Client *sender, std::string const &channel, std::stri
 		{
 			Client *clnt = _clients.find(mem_it->first)->second;
 			std::cout << "Sending to client: " << clnt->getFd() << std::endl;
-			clnt->setSendBuf(message);
+			// 여기 호스트네임?
+			std::string send_message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@hostname" + " PRIVMSG " + "#" + channel + " :" + message + "\n";
+			clnt->setSendBuf(send_message);
 			kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 		}
 		mem_it++;
 	}
+}
+
+void Server::sendToClient(Client *sender, std::string const &receiver, std::string message)
+{
+	int fd = getClientFdByNickname(receiver);
+	if (fd == -1)
+	{
+		sender->setSendBuf("Client not found\n");
+		kq.addEvent(sender->getFd(), EVFILT_WRITE);
+		return;
+	}
+	Client *clnt = _clients.find(fd)->second;
+	std::string send_message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@hostname" + " PRIVMSG " + receiver + " :" + message + "\n";
+	clnt->setSendBuf(send_message);
+	kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 }
 
 int Server::getClientFdByNickname(std::string nickname)
@@ -248,9 +279,16 @@ void Server::delChannel(std::string name)
 	_channels.erase(name);
 }
 
-void Server::addClientToChannel(std::string channel, int fd, int chanops)
+void Server::addClientToChannel(std::string channel, Client *clnt, int chanops)
 {
 	Channel *chan = _channels.find(channel)->second;
+	int fd = clnt->getFd();
+	if (chan->getClients().find(fd) != chan->getClients().end())
+	{
+		clnt->setSendBuf("You are already in the channel\n");
+		kq.addEvent(fd, EVFILT_WRITE);
+		return;
+	}
 	chan->addClient(fd, chanops);
 }
 
