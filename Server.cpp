@@ -164,7 +164,7 @@ void Server::joinChannel(Client *clnt, std::string channel)
 	}
 	else
 	{
-		addClientToChannel(channel, clnt->getFd(), 0);
+		addClientToChannel(channel, clnt, 0);
 	}
 	send(clnt->getFd(), ("Joined channel: " + channel + "\n").c_str(), 19 + channel.size(), 0);
 }
