@@ -107,13 +107,20 @@ void Server::makeNewConnection()
 void Server::setClientNickname(Client *clnt, std::string message)
 {
 	std::string command = message.substr(0, message.find(" "));
-	std::string content = message.substr(message.find(" ") + 1);
-	content = content.substr(0, content.find("\n"));
+	std::string nickname = message.substr(message.find(" ") + 1);
+	nickname = nickname.substr(0, nickname.find("\r\n"));
 	if (command == "NICK")
 	{
-		std::cout << "nickname: " << content << std::endl;
-		clnt->setNickname(content);
-		send(clnt->getFd(), "Now set your Username\n", 23, 0);
+		std::cout << "nickname: " << nickname << std::endl;
+		if (getClientFdByNickname(nickname) != -1)
+		{
+			send(clnt->getFd(), "Nickname already exists\n", 24, 0);
+		}
+		else
+		{
+			clnt->setNickname(nickname);
+			send(clnt->getFd(), "Now set your Username\n", 23, 0);
+		}
 	}
 	else
 	{
