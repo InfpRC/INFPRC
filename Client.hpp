@@ -6,6 +6,7 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 #define BUFFER_SIZE 100
 #define END 0
@@ -18,6 +19,8 @@ private:
 	std::string _nickname;
 	std::string _username;
 	std::string _realname;
+	std::string _ip;
+
 	std::string _recv_buffer;
 	std::string _send_buffer;
 
@@ -27,12 +30,15 @@ public:
 
 	void setNickname(std::string const &nickname);
 	void setUsername(std::string const &username);
+	void setRealname(std::string const &realname);
 	void setRecvBuf(std::string message);
 	void setSendBuf(std::string message);
 
-	int const &getFd() const;
-	std::string const &getNickname() const;
-	std::string const &getUsername() const;
+	int getFd() const;
+	std::string getNickname() const;
+	std::string getUsername() const;
+	std::string getIp() const;
+	std::string getRealname() const;
 	std::string getRecvBuf() const;
 	std::string getSendBuf() const;
 
@@ -41,7 +47,6 @@ public:
 
 	int recvSocket();
 	int sendSocket();
-	void echoService();
 };
 
 #endif

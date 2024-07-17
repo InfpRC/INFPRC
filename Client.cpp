@@ -1,17 +1,17 @@
 
 #include "Client.hpp"
 
-Client::Client(int fd)
+Client::Client(int fd) : _fd(fd)
 {
-	_fd = fd;
-	_nickname = "";
-	_username = "";
-	_realname = "";
-	_recv_buffer = "";
-	_send_buffer = "";
+	struct sockaddr_in client_addr;
+	socklen_t addr_len = sizeof(client_addr);
+
+	getsockname(_fd, (struct sockaddr *)&client_addr, &addr_len);
+	_ip = inet_ntoa(client_addr.sin_addr);
 }
 
 Client::~Client() {}
+
 
 void Client::setNickname(std::string const &nickname)
 {
@@ -23,17 +23,40 @@ void Client::setUsername(std::string const &username)
 	_username = username;
 }
 
-std::string const &Client::getNickname() const
+void Client::setRealname(std::string const &realname)
+{
+	_realname = realname;
+}
+
+void Client::setRecvBuf(std::string message)
+{
+	_recv_buffer.append(message);
+}
+
+void Client::setSendBuf(std::string message)
+{
+	_send_buffer.append(message);
+}
+
+std::string Client::getNickname() const
 {
 	return _nickname;
 }
 
-std::string const &Client::getUsername() const
+std::string Client::getUsername() const
 {
 	return _username;
 }
 
-int const &Client::getFd() const
+std::string Client::getIp() const {
+	return _ip;
+}
+
+std::string Client::getRealname() const {
+	return _realname;
+}
+
+int Client::getFd() const
 {
 	return _fd;
 }
@@ -48,24 +71,14 @@ std::string Client::getSendBuf() const
 	return _send_buffer;
 }
 
-void Client::setRecvBuf(std::string message)
-{
-	_recv_buffer = message;
-}
-
-void Client::setSendBuf(std::string message)
-{
-	_send_buffer = message;
-}
-
 void Client::clearRecvBuf()
 {
-	_recv_buffer.clear();
+	_recv_buffer = _recv_buffer.substr(_recv_buffer.find("\n") + 1, _recv_buffer.size());
 }
 
 void Client::clearSendBuf()
 {
-	_send_buffer.clear();
+	_send_buffer = _send_buffer.substr(_send_buffer.find("\n") + 1, _send_buffer.size());
 }
 
 int Client::recvSocket()
@@ -75,8 +88,8 @@ int Client::recvSocket()
 	{
 		return EOF;
 	}
-	_recv_buffer.append(buf);
-	if (_recv_buffer[_recv_buffer.size() - 1] == '\n')
+	setRecvBuf(buf);
+	if (_recv_buffer.find("\n") != std::string::npos)
 	{
 		return END;
 	}

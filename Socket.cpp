@@ -5,9 +5,9 @@ Socket::Socket(std::string &_port, std::string &_password) : port(strtod(_port.c
 	fd = socket(PF_INET, SOCK_STREAM, 0);
 	if (fd == -1)
 		throw std::runtime_error("socket() error");
-	reusePort(fd);
-	bindSock(fd);
-	listenSock(fd, 10);
+	reusePort();
+	bindSock();
+	listenSock(10);
 	setNonBlock(fd);
 }
 
@@ -23,13 +23,13 @@ int Socket::acceptSock() {
 	return clnt;
 }
 
-void Socket::reusePort(int fd) {
+void Socket::reusePort() {
 	int option = true;
 	int optlen = sizeof(option);
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&option, optlen);
 }
 
-void Socket::bindSock(int fd) {
+void Socket::bindSock() {
 	memset(&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -39,7 +39,7 @@ void Socket::bindSock(int fd) {
 		throw std::runtime_error("bind() error");
 }
 
-void Socket::listenSock(int fd, int listen_size) {
+void Socket::listenSock(int listen_size) {
 	if (listen(fd, listen_size) == -1)
 		throw std::runtime_error("listen() error");
 }

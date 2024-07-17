@@ -17,7 +17,7 @@ private:
 	Socket serv;
 	Kqueue kq;
 	std::map<int, Client *> _clients;
-	std::map<std::string, Channel *> _channels;
+	std::map<std::string, Channel *> _channels; // class로 빼기
 
 	void echoService(Client &clnt);
 	void channelService(Client &clnt);

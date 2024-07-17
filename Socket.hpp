@@ -15,9 +15,9 @@ class Socket {
 		struct sockaddr_in address;
 		socklen_t address_size;
 
-		void reusePort(int fd);
-		void bindSock(int fd);
-		void listenSock(int fd, int listen_size);
+		void reusePort();
+		void bindSock();
+		void listenSock( int listen_size);
 		void setNonBlock(int fd);
 
 	public:
