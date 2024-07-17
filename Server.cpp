@@ -41,11 +41,12 @@ void Server::run()
 					std::string message = clnt->getRecvBuf();
 					std::string nickname = clnt->getNickname();
 					std::string username = clnt->getUsername();
+					std::string realname = clnt->getRealname();
 					if (nickname == "")
 					{
 						setClientNickname(clnt, message);
 					}
-					else if (username == "")
+					else if (username == "" || realname == "")
 					{
 						setClientUsername(clnt, message);
 					}
@@ -67,9 +68,16 @@ void Server::run()
 						}
 						else if (command == "PRIVMSG")
 						{
-							std::string channel = content.substr(0, content.find(" "));
+							std::string target = content.substr(0, content.find(" "));
 							std::string message = content.substr(content.find(" ") + 1);
-							sendToChannel(clnt, channel, message);
+							if (target[0] == '#')
+							{
+								sendToChannel(clnt, target.substr(1), message);
+							}
+							else
+							{
+								sendToClient(clnt, target, message);
+							}
 						}
 					}
 					clnt->clearRecvBuf();
@@ -107,13 +115,20 @@ void Server::makeNewConnection()
 void Server::setClientNickname(Client *clnt, std::string message)
 {
 	std::string command = message.substr(0, message.find(" "));
-	std::string content = message.substr(message.find(" ") + 1);
-	content = content.substr(0, content.find("\n"));
+	std::string nickname = message.substr(message.find(" ") + 1);
+	nickname = nickname.substr(0, nickname.find("\r\n"));
 	if (command == "NICK")
 	{
-		std::cout << "nickname: " << content << std::endl;
-		clnt->setNickname(content);
-		send(clnt->getFd(), "Now set your Username\n", 23, 0);
+		std::cout << "nickname: " << nickname << std::endl;
+		if (getClientFdByNickname(nickname) != -1)
+		{
+			send(clnt->getFd(), "Nickname already exists\n", 24, 0);
+		}
+		else
+		{
+			clnt->setNickname(nickname);
+			send(clnt->getFd(), "Now set your Username\n", 23, 0);
+		}
 	}
 	else
 	{
@@ -123,13 +138,18 @@ void Server::setClientNickname(Client *clnt, std::string message)
 
 void Server::setClientUsername(Client *clnt, std::string message)
 {
+	// 일단 USER username realname\r\n 형식으로 받아서 처리
 	std::string command = message.substr(0, message.find(" "));
-	std::string content = message.substr(message.find(" ") + 1);
-	content = content.substr(0, content.find("\r\n"));
-	if (command == "USER")
+	std::string username = message.substr(message.find(" ") + 1);
+	std::string realname = username.substr(username.find(" ") + 1);
+	username = username.substr(0, username.find(" "));
+	realname = realname.substr(0, realname.find("\r\n"));
+	if (command == "USER" && username != "" && realname != "")
 	{
-		std::cout << "username: " << content << std::endl;
-		clnt->setUsername(content);
+		std::cout << "username: " << username << std::endl;
+		std::cout << "realname: " << realname << std::endl;
+		clnt->setUsername(username);
+		clnt->setRealname(realname);
 		send(clnt->getFd(), "Hello, ", 7, 0);
 		send(clnt->getFd(), clnt->getNickname().c_str(), clnt->getNickname().size(), 0);
 		send(clnt->getFd(), "\n", 1, 0);
@@ -146,11 +166,11 @@ void Server::joinChannel(Client *clnt, std::string channel)
 	{
 		Channel *chan = new Channel(channel);
 		addChannel(chan);
-		addClientToChannel(channel, clnt->getFd(), 1);
+		addClientToChannel(channel, clnt, 1);
 	}
 	else
 	{
-		addClientToChannel(channel, clnt->getFd(), 0);
+		addClientToChannel(channel, clnt, 0);
 	}
 	send(clnt->getFd(), ("Joined channel: " + channel + "\n").c_str(), 19 + channel.size(), 0);
 }
@@ -174,11 +194,18 @@ void Server::sendToChannel(Client *sender, std::string const &channel, std::stri
 	std::map<std::string, Channel *>::iterator it = _channels.find(channel);
 	if (it == _channels.end())
 	{
-		std::cout << "channel not found" << std::endl;
+		sender->setSendBuf("Channel not found\n");
+		kq.addEvent(sender->getFd(), EVFILT_WRITE);
 		return;
 	}
 	Channel *chan = it->second;
 	std::map<int, int> members = chan->getClients();
+	if (members.find(sender->getFd()) == members.end())
+	{
+		sender->setSendBuf("You are not in the channel\n");
+		kq.addEvent(sender->getFd(), EVFILT_WRITE);
+		return;
+	}
 	std::map<int, int>::const_iterator mem_it = members.begin();
 	while (mem_it != members.end())
 	{
@@ -186,11 +213,28 @@ void Server::sendToChannel(Client *sender, std::string const &channel, std::stri
 		{
 			Client *clnt = _clients.find(mem_it->first)->second;
 			std::cout << "Sending to client: " << clnt->getFd() << std::endl;
-			clnt->setSendBuf(message);
+			// 여기 호스트네임?
+			std::string send_message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@hostname" + " PRIVMSG " + "#" + channel + " :" + message + "\n";
+			clnt->setSendBuf(send_message);
 			kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 		}
 		mem_it++;
 	}
+}
+
+void Server::sendToClient(Client *sender, std::string const &receiver, std::string message)
+{
+	int fd = getClientFdByNickname(receiver);
+	if (fd == -1)
+	{
+		sender->setSendBuf("Client not found\n");
+		kq.addEvent(sender->getFd(), EVFILT_WRITE);
+		return;
+	}
+	Client *clnt = _clients.find(fd)->second;
+	std::string send_message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@hostname" + " PRIVMSG " + receiver + " :" + message + "\n";
+	clnt->setSendBuf(send_message);
+	kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 }
 
 int Server::getClientFdByNickname(std::string nickname)
@@ -241,9 +285,16 @@ void Server::delChannel(std::string name)
 	_channels.erase(name);
 }
 
-void Server::addClientToChannel(std::string channel, int fd, int chanops)
+void Server::addClientToChannel(std::string channel, Client *clnt, int chanops)
 {
 	Channel *chan = _channels.find(channel)->second;
+	int fd = clnt->getFd();
+	if (chan->getClients().find(fd) != chan->getClients().end())
+	{
+		clnt->setSendBuf("You are already in the channel\n");
+		kq.addEvent(fd, EVFILT_WRITE);
+		return;
+	}
 	chan->addClient(fd, chanops);
 }
 
