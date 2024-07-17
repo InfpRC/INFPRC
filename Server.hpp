@@ -10,12 +10,13 @@
 #include "Client.hpp"
 #include "Kqueue.hpp"
 #include "Channel.hpp"
+#include "Message.hpp"
 
 class Server
 {
 private:
-	Socket serv;
-	Kqueue kq;
+	Socket _serv;
+	Kqueue _kq;
 	std::map<int, Client *> _clients;
 	std::map<std::string, Channel *> _channels; // class로 빼기
 
@@ -50,6 +51,9 @@ public:
 	void setClientNickname(Client *clnt, std::string message);
 	void setClientUsername(Client *clnt, std::string message);
 	void joinChannel(Client *clnt, std::string channel);
+
+	void parsing(Client *clnt);
+
 };
 
 #endif

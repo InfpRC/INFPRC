@@ -13,6 +13,7 @@ Message::Message(Client *_clnt) : clnt(_clnt) {
 		trailing = token.substr(1, token.size());
 	}
 	while (ss >> token) {
+		trailing.append(" ");
 		trailing.append(token);
 	}
 }
