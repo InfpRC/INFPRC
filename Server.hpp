@@ -40,12 +40,12 @@ public:
 	void addChannel(Channel *channel);
 	void delChannel(std::string name);
 
-	void addClientToChannel(std::string channel, int fd, int chanops);
+	void addClientToChannel(std::string channel, Client *clnt, int chanops);
 	void delClientFromChannel(std::string channel, int fd);
 	void getChannelList();
 
 	void sendToChannel(Client *sender, std::string const &channel, std::string message);
-	void sendToClient(std::string nickname, std::string message);
+	void sendToClient(Client *sender, std::string const &receiver, std::string message);
 	void sendToAll(std::string _message);
 
 	void setClientNickname(Client *clnt, std::string message);
