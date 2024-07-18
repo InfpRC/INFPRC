@@ -1,6 +1,6 @@
 NAME = ircserv
-SRCS = main.cpp Client.cpp Kqueue.cpp Channel.cpp Server.cpp Socket.cpp
-INCS = Client.cpp Kqueue.hpp Channel.cpp Server.hpp Socket.hpp
+SRCS = main.cpp Client.cpp Kqueue.cpp Channel.cpp Server.cpp Socket.cpp Message.cpp
+INCS = Client.cpp Kqueue.hpp Channel.cpp Server.hpp Socket.hpp Message.hpp
 INC_DIR = -I ./
 OBJ_DIR = objs
 OBJS = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
