@@ -56,10 +56,10 @@ void ClientsManager::setClientNickname(Client *clnt, std::string nickname, Kqueu
 }
 
 
-void ClientsManager::setClientUsername(Client *clnt, Message message, Kqueue &kq)
+void ClientsManager::setClientUsername(Client *clnt, Executer executer, Kqueue &kq)
 {
-	std::string username = message.getParams(0);
-	std::string realname = message.getParams(3);
+	std::string username = executer.getParams(0);
+	std::string realname = executer.getParams(3);
 	/* username, realname 유효성 검사 */
 	clnt->setUsername(username);
 	clnt->setRealname(realname);

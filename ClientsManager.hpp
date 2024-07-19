@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "Client.hpp"
 #include "Kqueue.hpp"
-#include "Message.hpp"
+#include "Executer.hpp"
 
 class ClientsManager
 {
@@ -24,7 +24,7 @@ public:
 	std::map<int, Client *> &getClients();
 
 	void setClientNickname(Client *clnt, std::string nickname, Kqueue &kq);
-	void setClientUsername(Client *clnt, Message message, Kqueue &kq);
+	void setClientUsername(Client *clnt, Executer executer, Kqueue &kq);
 };
 
 
