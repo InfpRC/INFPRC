@@ -10,15 +10,18 @@
 #include "Client.hpp"
 #include "Kqueue.hpp"
 #include "Channel.hpp"
-#include "Message.hpp"
+#include "Executer.hpp"
+
+class Message;
 
 class Server
 {
 private:
 	Socket _serv;
 	Kqueue _kq;
-	std::map<int, Client *> _clients;
-	std::map<std::string, Channel *> _channels; // class로 빼기
+	
+	ChannelsManager _channelsManager;
+	ClientsManager _clientsManager;
 
 	void echoService(Client &clnt);
 	void channelService(Client &clnt);
@@ -28,31 +31,28 @@ public:
 	~Server();
 
 	void run();
-	void addClient(Client *clnt);
-	void delClient(int fd);
 
 	void makeNewConnection();
 
-	int getClientFdByNickname(std::string nickname);
-
-	std::string getNicknameByClientFd(int fd);
-
-	void addChannel(Channel *channel);
-	void delChannel(std::string name);
-
-	void addClientToChannel(std::string channel, Client *clnt, int chanops);
-	void delClientFromChannel(std::string channel, int fd);
-	void getChannelList();
-
-	void sendToChannel(Client *sender, std::string const &channel, std::string message);
-	void sendToClient(Client *sender, std::string const &receiver, std::string message);
-	void sendToAll(std::string _message);
-
-	void setClientNickname(Client *clnt, std::string message);
-	void setClientUsername(Client *clnt, std::string message);
-	void joinChannel(Client *clnt, std::string channel);
-
 	void parsing(Client *clnt);
+
+	////NICK
+	//void setClientNickname(Client *clnt, std::string nickname);
+	////USER
+	//void setClientUsername(Client *clnt, Message message);
+
+	//JOIN
+	void joinChannel(Client *clnt, Message message);
+
+	// PRIVMSG
+	void sendToChannel(Client *sender, std::string const &channel, std::string message);
+
+	void sendToAll(std::string _message);
+	void sendToClient(Client *sender, std::string const &receiver, std::string message);
+	
+	
+
+
 
 };
 
