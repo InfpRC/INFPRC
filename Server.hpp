@@ -42,7 +42,7 @@ public:
 	//void setClientUsername(Client *clnt, Message message);
 
 	//JOIN
-	void joinChannel(Client *clnt, Message message);
+	void joinChannel(Client *clnt, Executer executer);
 
 	// PRIVMSG
 	void sendToChannel(Client *sender, std::string const &channel, std::string message);
