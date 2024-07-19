@@ -73,7 +73,7 @@ void Server::parsing(Client *clnt) {
 			std::string target = message.getParams(0);
 			std::string msg = message.getParams(1);
 			if (target[0] == '#') {
-				sendToChannel(clnt, target, msg);
+				sendToChannel(clnt, target.substr(target.find("#") + 1), msg);
 			} else {
 				sendToClient(clnt, target, msg);
 			}
@@ -111,6 +111,14 @@ void Server::joinChannel(Client *clnt, Message message) {
 		if (chan->getKey() != "" && chan->getKey() != key) {
 			// send error message
 			clnt->setSendBuf("Wrong key\n");
+			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
+			return;
+		}
+
+		// check limit
+		if (chan->getLimit() > 0 && chan->getClientNum() >= chan->getLimit()) {
+			// send error message
+			clnt->setSendBuf("Channel is full\n");
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 			return;
 		}
