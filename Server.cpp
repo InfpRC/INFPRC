@@ -61,17 +61,17 @@ void Server::makeNewConnection() {
 void Server::parsing(Client *clnt) {
 	while (clnt->getRecvBuf().size()) {
 		std::cout << clnt->getRecvBuf() << std::endl;
-		Message message(clnt);
-		std::string command = message.getCommand();
+		Executer executer(clnt);
+		std::string command = executer.getCommand();
 		if (command == "NICK") {
-			_clientsManager.setClientNickname(clnt, message.getParams(0), _kq);
+			_clientsManager.setClientNickname(clnt, executer.getParams(0), _kq);
 		} else if (command == "USER") {
-			_clientsManager.setClientUsername(clnt, message, _kq);
+			_clientsManager.setClientUsername(clnt, executer, _kq);
 		} else if (command == "JOIN") {
-			joinChannel(clnt, message);
+			//joinChannel(clnt, executer);
 		} else if (command == "PRIVMSG") {
-			std::string target = message.getParams(0);
-			std::string msg = message.getParams(1);
+			std::string target = executer.getParams(0);
+			std::string msg = executer.getParams(1);
 			if (target[0] == '#') {
 				sendToChannel(clnt, target.substr(target.find("#") + 1), msg);
 			} else {
@@ -84,9 +84,9 @@ void Server::parsing(Client *clnt) {
 }
 
 
-void Server::joinChannel(Client *clnt, Message message) {
-	std::string channel = message.getParams(0);
-	std::string key = message.getParams(1);
+void Server::joinChannel(Client *clnt, Executer executer) {
+	std::string channel = executer.getParams(0);
+	std::string key = executer.getParams(1);
 	Channel *chan = _channelsManager.getChannel(channel);
 	if (chan == NULL) {
 		Channel *new_chan = new Channel(channel);
@@ -100,7 +100,7 @@ void Server::joinChannel(Client *clnt, Message message) {
 		// check mode
 		if (chan->getInviteOnly()) {
 			if (chan->isInvited(clnt->getFd()) == 0) {
-				// send error message
+				// send error executer
 				clnt->setSendBuf("You are not invited\n");
 				_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 				return;
@@ -109,7 +109,7 @@ void Server::joinChannel(Client *clnt, Message message) {
 
 		// check key
 		if (chan->getKey() != "" && chan->getKey() != key) {
-			// send error message
+			// send error executer
 			clnt->setSendBuf("Wrong key\n");
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 			return;
@@ -117,23 +117,23 @@ void Server::joinChannel(Client *clnt, Message message) {
 
 		// check limit
 		if (chan->getLimit() > 0 && chan->getClientNum() >= chan->getLimit()) {
-			// send error message
+			// send error executer
 			clnt->setSendBuf("Channel is full\n");
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 			return;
 		}
 		chan->addClient(clnt->getFd(), 0);
 	}
-	// send join message
-	std::string join_message = ":" + clnt->getNickname() + "!" + clnt->getUsername() + "@hostname" + " JOIN " + "#" + channel + "\n";
-	clnt->setSendBuf(join_message);
+	// send join executer
+	std::string join_executer = ":" + clnt->getNickname() + "!" + clnt->getUsername() + "@hostname" + " JOIN " + "#" + channel + "\n";
+	clnt->setSendBuf(join_executer);
 	_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 }
 
 
-void Server::sendToChannel(Client *sender, std::string const &channel, std::string message) {
+void Server::sendToChannel(Client *sender, std::string const &channel, std::string executer) {
 	std::cout << "channel: " << channel << std::endl;
-	std::cout << "message: " << message << std::endl;
+	std::cout << "executer: " << executer << std::endl;
 	Channel *chan = _channelsManager.getChannel(channel);
 	if (chan == NULL) {
 		sender->setSendBuf("Channel not found\n");
@@ -153,15 +153,15 @@ void Server::sendToChannel(Client *sender, std::string const &channel, std::stri
 			Client *clnt = _clientsManager.getClient(mem_it->first);
 			std::cout << "Sending to client: " << clnt->getFd() << std::endl;
 			// 여기 호스트네임?
-			std::string send_message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@hostname" + " PRIVMSG " + "#" + channel + " :" + message + "\n";
-			clnt->setSendBuf(send_message);
+			std::string send_executer = ":" + sender->getNickname() + "!" + sender->getUsername() + "@hostname" + " PRIVMSG " + "#" + channel + " :" + executer + "\n";
+			clnt->setSendBuf(send_executer);
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 		}
 		mem_it++;
 	}
 }
 
-void Server::sendToClient(Client *sender, std::string const &receiver, std::string message)
+void Server::sendToClient(Client *sender, std::string const &receiver, std::string executer)
 {
 	int fd = _clientsManager.getFdByNickname(receiver);
 	if (fd == -1)
@@ -171,30 +171,41 @@ void Server::sendToClient(Client *sender, std::string const &receiver, std::stri
 		return;
 	}
 	Client *clnt = _clientsManager.getClient(fd);
-	std::string send_message = ":" + sender->getNickname() + "!" + sender->getUsername() + "@hostname" + " PRIVMSG " + receiver + " :" + message + "\n";
-	clnt->setSendBuf(send_message);
+	std::string send_executer = ":" + sender->getNickname() + "!" + sender->getUsername() + "@hostname" + " PRIVMSG " + receiver + " :" + executer + "\n";
+	clnt->setSendBuf(send_executer);
 	_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 }
 
+// void Server::parsing(Client *clnt) {
+// 	while (clnt->getRecvBuf().size()) {
+// 		std::cout << clnt->getRecvBuf() << std::endl;
+// 		Message message(clnt);
+// 		if (message.getCommand() == "NICK") {
+// 			message.nickCommand();
+// 		} else if (message.getCommand() == "USER") {
+// 			message.userCommand();
+// 		} else if (message.getCommand() == "PING") {
+// 			message.pingCommand();
+// 		} else if (message.getCommand() == "JOIN") {
+// 			message.joinCommand(&database);
+// 		} else if (message.getCommand() == "PRIVMSG") {
+// 			message.msgCommand();
+// 		} else if (message.getCommand() == "PART") {
+// 			message.partCommand();
+// 		} else if (message.getCommand() == "QUIT") {
+// 			message.quitCommand();
+// 		} else if (message.getCommand() == "KICK") {
+// 			message.kickCommand();
+// 		} else if (message.getCommand() == "MODE") {
+// 			message.modeCommand();
+// 		} else if (message.getCommand() == "") {
+// 			message.moreCommand();
 
-// void Server::echoService(Client &clnt) {
-// 	clnt.setSendBuf(clnt.getRecvBuf());
-// 	clnt.clearRecvBuf();
-// 	_kq.addEvent(clnt.getFd(), EVFILT_WRITE);
-// }
-
-// void Server::_channelService(Client &clnt) {
-// 	//std::string message = clnt.getRecvBuf();
-// 	//Channel::iterator user = channel.begin();
-// 	//while (user != channel.end()) {
-// 	//	if (user->first == clnt.getFd()) {
-// 	//		user++;
-// 	//		continue ;
-// 	//	}
-// 	//	user->second.setSendBuf(clnt.getRecvBuf());
-// 	//	_kq.addEvent(user->first, EVFILT_WRITE);
-// 	//	user++;
-// 	//}
-// 	//clnt.clearRecvBuf();
-// 	//_kq.addEvent(clnt.getFd(), EVFILT_WRITE);
+// 		}
+// 		std::cout << "Nickname: " << clnt->getNickname() << std::endl;
+// 		std::cout << "Username: " << clnt->getUsername() << std::endl;
+// 		std::cout << "Address: " << clnt->getIp() << std::endl;
+// 		std::cout << "Realname: " << clnt->getRealname() << std::endl;
+// 		kq.addEvent(clnt->getFd(), EVFILT_WRITE);
+// 	}
 // }

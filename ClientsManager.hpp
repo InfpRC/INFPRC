@@ -7,6 +7,8 @@
 #include "Kqueue.hpp"
 #include "Executer.hpp"
 
+class Executer;
+
 class ClientsManager
 {
 private:
