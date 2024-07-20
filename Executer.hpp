@@ -13,10 +13,12 @@
 
 class Executer {
 	private:
-		Client *clnt;
-		std::string prefix;
-		std::string command;
-		std::vector<std::string> params;
+		Client *_clnt;
+		ClientsManager *_clients_manager;
+		ChannelsManager *_channels_manager;
+		std::string _prefix;
+		std::string _command;
+		std::vector<std::string> _params;
 
 		std::string makeSource(bool is_clnt);
 
