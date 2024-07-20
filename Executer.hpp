@@ -11,12 +11,18 @@
 #define SERVER 0
 #define CLIENT 1
 
+#define NON 0
+#define ONLY 1
+#define ALL 2
+
+class ClientsManager;
+class ChannelsManager;
+
 class Executer {
 	private:
 		Client *_clnt;
 		ClientsManager *_clients_manager;
 		ChannelsManager *_channels_manager;
-		std::string _prefix;
 		std::string _command;
 		std::vector<std::string> _params;
 
@@ -28,11 +34,11 @@ class Executer {
 		std::string getCommand();
 		std::string getParams(int i);
 
-
-		void nickCommand();
-		void userCommand();
-		void pingCommand();
-		void joinCommand();
+		int passCommand(std::string password);
+		int nickCommand();
+		int userCommand();
+		int pingCommand();
+		int joinCommand();
 };
 
 #endif

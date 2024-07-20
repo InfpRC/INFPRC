@@ -17,12 +17,12 @@ class Message;
 class Server
 {
 private:
-	std::string _password;
 	Socket _serv;
+	std::string _password;
 	Kqueue _kq;
 	
-	ChannelsManager _channelsManager;
-	ClientsManager _clientsManager;
+	ChannelsManager _channels_manager;
+	ClientsManager _clients_manager;
 
 public:
 	Server(std::string port, std::string password);
@@ -31,6 +31,8 @@ public:
 	void run();
 
 	void makeNewConnection();
+	void eventReadExec(struct kevent event);
+	void eventWriteExec(struct kevent event);
 
 	void parsing(Client *clnt);
 
