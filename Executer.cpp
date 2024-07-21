@@ -49,8 +49,7 @@ int Executer::nickCommand() {
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
-		}
-		if (_params.size() != 1) {
+		} else if (_params.size() != 1) {
 			throw std::logic_error(makeSource(SERVER) + " 431 " + _clnt->getNickname() + " :No nickname given\r\n");
 		}
 		std::string nick = getParams(0);
@@ -70,7 +69,7 @@ int Executer::nickCommand() {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
 		// _db->announce(_clnt->getFd(), makeSource(CLIENT) + " " + _clnt->getNickname() + " NICK " + nick + "\r\n");
-		// flag = ALL;
+		flag = ALL;
 		_clnt->setNickname(getParams(0));
 	} catch (std::exception &e) {
 		_clnt->setSendBuf(e.what());
@@ -83,11 +82,9 @@ int Executer::userCommand() {
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
-		}
-		if (_params.size() != 4) {
+		} else if (_params.size() != 4) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " USER :Not enough parameters\r\n");
-		}
-		if (!_clnt->getUsername().empty()) {
+		} else if (!_clnt->getUsername().empty()) {
 			throw std::logic_error(makeSource(SERVER) + " 462 " + _clnt->getNickname() + " :You may not reregister\r\n");
 		}
 		_clnt->setUsername(getParams(0));
@@ -108,8 +105,7 @@ int Executer::pingCommand() {
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
-		}
-		if (_params.size() != 1) {
+		} else if (_params.size() != 1) {
 			throw std::logic_error(makeSource(SERVER) + " 409 " + _clnt->getNickname() + " :No origin specified\r\n");
 		}
 		_clnt->setSendBuf(makeSource(SERVER) + " PONG irc.seoul42.com :" + getParams(0) + "\r\n");
@@ -124,11 +120,9 @@ int Executer::pongCommand() {
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
-		}
-		if (_params.size() != 1) {
+		} else if (_params.size() != 1) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
-		}
-		if (getParams(0) == "ping pong") {
+		} else if (getParams(0) == "ping pong") {
 			_clnt->setPing(true);
 		} else {
 			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
@@ -140,6 +134,49 @@ int Executer::pongCommand() {
 	return flag;
 }
 
+int Executer::quitCommand() {
+	int flag = ALL;
+	_clnt->setSendBuf(makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
+	_clnt->setPassed(false);
+	return flag;
+}
+
+int Executer::joinCommand() {
+	std::stringstream ss_chan(getParams(0));
+	std::stringstream ss_key(getParams(1));
+	std::vector<std::string> chans;
+	std::vector<std::string> keys;
+	std::string token;
+	while (std::getline(ss_chan, token, ',')) {
+        chans.push_back(token);
+    }
+	while (std::getline(ss_key, token, ',')) {
+        keys.push_back(token);
+    }
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.empty()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " JOIN :Not enough parameters\r\n");
+		} for (size_t i = 0; i < chans.size(); i++) {
+			Channel *chan = _channels_manager->getChannel(chans[i].substr(1, chans[i].size()));
+			if (chan == nullptr) {
+				// channel create
+			} else if (chan->getKey() != keys[i]) {
+				throw std::logic_error(makeSource(SERVER) + " 475 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+k)\r\n");
+			}
+			/* channel mode +l 일 때 최대 크기를 넘어선 경우 error message */
+			/* invite only channel error message */
+			else if (chans[i][0] != '#') {
+				throw std::logic_error(makeSource(SERVER) + " 476 " + chans[i] + " :Bad Channel Mask\r\n");
+			}
+			/* join reply message */
+		}
+	} catch (const std::exception& e) {
+		_clnt->setSendBuf(e.what());
+	}
+	return ONLY;	
+}
 
 std::string Executer::makeSource(bool is_clnt) {
 	std::string source;

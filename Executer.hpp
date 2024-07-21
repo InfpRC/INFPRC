@@ -40,6 +40,7 @@ public:
 	int userCommand();
 	int pingCommand();
 	int pongCommand();
+	int quitCommand();
 	int joinCommand();
 };
 

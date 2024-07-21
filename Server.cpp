@@ -101,14 +101,14 @@ void Server::parsing(Client *clnt) {
 			flag = executer.pingCommand();
 		} else if (executer.getCommand() == "PONG") {
 			flag = executer.pongCommand();
-		} /* else if (executer.getCommand() == "JOIN") {
+		} else if (executer.getCommand() == "QUIT") {
+			flag = executer.quitCommand();
+		} else if (executer.getCommand() == "JOIN") {
 			flag = executer.joinCommand();
-		} else if (executer.getCommand() == "PRIVMSG") {
+		}/* else if (executer.getCommand() == "PRIVMSG") {
 			flag = executer.msgCommand();
 		} else if (executer.getCommand() == "PART") {
 			flag = executer.partCommand();
-		} else if (executer.getCommand() == "QUIT") {
-			flag = executer.quitCommand();
 		} else if (executer.getCommand() == "KICK") {
 			flag = executer.kickCommand();
 		} else if (executer.getCommand() == "MODE") {
