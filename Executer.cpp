@@ -1,7 +1,7 @@
 
 #include "Executer.hpp"
 
-Executer::Executer(Client *clnt) : _clnt(clnt) {
+Executer::Executer(Client *clnt, ClientsManager *clients_manager, ChannelsManager *channels_manager) : _clnt(clnt), _clients_manager(clients_manager), _channels_manager(channels_manager) {
 	std::stringstream ss(clnt->getRecvBuf());
 	clnt->clearRecvBuf();
 	std::string token;
@@ -66,11 +66,11 @@ int Executer::nickCommand() {
 				throw std::logic_error(makeSource(SERVER) + " 432 " + _clnt->getNickname() + " :Erroneus nickname\r\n");
 			}
 		}
-		if (_clients_manager->getFdByNickname(nick) == -1) {
+		if (_clients_manager->getFdByNickname(nick) != -1) {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
 		// _db->announce(_clnt->getFd(), makeSource(CLIENT) + " " + _clnt->getNickname() + " NICK " + nick + "\r\n");
-		flag = ALL;
+		// flag = ALL;
 		_clnt->setNickname(getParams(0));
 	} catch (std::exception &e) {
 		_clnt->setSendBuf(e.what());

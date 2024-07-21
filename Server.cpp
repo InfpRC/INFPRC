@@ -42,8 +42,8 @@ void Server::eventReadExec(struct kevent event) {
 		if (result == EOF) {
 			std::cout << "closed client: " << clnt->getFd() << std::endl;
 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
-			_clients_manager.delClient(clnt->getFd());
 			close(clnt->getFd());
+			_clients_manager.delClient(clnt->getFd());
 		} else if (result == END) {
 			parsing(clnt);
 		}
@@ -58,18 +58,18 @@ void Server::eventWriteExec(struct kevent event) {
 			if (clnt->getPassed()) {
 				_kq.addEvent(clnt->getFd(), EVFILT_READ);
 			} else {
-				_clients_manager.delClient(clnt->getFd());
 				close(clnt->getFd());
+				_clients_manager.delClient(clnt->getFd());
 			}
 		}
 	}
 }
 
 void Server::parsing(Client *clnt) {
-	int flag = NON;
 	while (clnt->getRecvBuf().size()) {
-		std::cout << clnt->getRecvBuf() << std::endl;
-		Executer executer(clnt);
+		int flag = NON;
+		std::cout << clnt->getRecvBuf();
+		Executer executer(clnt, &_clients_manager, &_channels_manager);
 		if (executer.getCommand() == "PASS") {
 			flag = executer.passCommand(_password);
 		} else if (executer.getCommand() == "NICK") {
@@ -93,10 +93,7 @@ void Server::parsing(Client *clnt) {
 		} else if (executer.getCommand() == "") {
 			flag = executer.moreCommand();
 		} */
-		std::cout << "Nickname: " << clnt->getNickname() << std::endl;
-		std::cout << "Username: " << clnt->getUsername() << std::endl;
-		std::cout << "Address: " << clnt->getIp() << std::endl;
-		std::cout << "Realname: " << clnt->getRealname() << std::endl;
+		std::cout << executer.getCommand() << ": " << flag << std::endl;
 		if (flag == ONLY) {
 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);

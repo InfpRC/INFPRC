@@ -29,7 +29,7 @@ class Executer {
 		std::string makeSource(bool is_clnt);
 
 	public:
-		Executer(Client *clnt);
+		Executer(Client *clnt, ClientsManager *clients_manager, ChannelsManager *channels_manager);
 		~Executer();
 		std::string getCommand();
 		std::string getParams(int i);
