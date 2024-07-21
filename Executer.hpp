@@ -19,26 +19,28 @@ class ClientsManager;
 class ChannelsManager;
 
 class Executer {
-	private:
-		Client *_clnt;
-		ClientsManager *_clients_manager;
-		ChannelsManager *_channels_manager;
-		std::string _command;
-		std::vector<std::string> _params;
+private:
+	Client *_clnt;
+	ClientsManager *_clients_manager;
+	ChannelsManager *_channels_manager;
+	std::string _command;
+	std::vector<std::string> _params;
 
-		std::string makeSource(bool is_clnt);
+	std::string makeSource(bool is_clnt);
+	std::string makeTrailing(std::string message);
 
-	public:
-		Executer(Client *clnt, ClientsManager *clients_manager, ChannelsManager *channels_manager);
-		~Executer();
-		std::string getCommand();
-		std::string getParams(int i);
+public:
+	Executer(Client *clnt, ClientsManager *clients_manager, ChannelsManager *channels_manager);
+	~Executer();
+	std::string getCommand();
+	std::string getParams(int i);
 
-		int passCommand(std::string password);
-		int nickCommand();
-		int userCommand();
-		int pingCommand();
-		int joinCommand();
+	int passCommand(std::string password);
+	int nickCommand();
+	int userCommand();
+	int pingCommand();
+	int pongCommand();
+	int joinCommand();
 };
 
 #endif

@@ -21,6 +21,8 @@ void Server::run() {
 				eventReadExec(event);
 			} else if (event.filter == EVFILT_WRITE) {
 				eventWriteExec(event);
+			} else if (event.filter == EVFILT_TIMER) {
+				eventTimerExec(event);
 			}
 		}
 	}
@@ -32,6 +34,7 @@ void Server::makeNewConnection() {
 	Client *clnt = new Client(clnt_sock);
 	_clients_manager.addClient(clnt);
 	_kq.addEvent(clnt_sock, EVFILT_READ);
+	_kq.setTimer(clnt_sock);
 	std::cout << "connected client: " << clnt_sock << std::endl;
 }
 
@@ -58,9 +61,27 @@ void Server::eventWriteExec(struct kevent event) {
 			if (clnt->getPassed()) {
 				_kq.addEvent(clnt->getFd(), EVFILT_READ);
 			} else {
+				std::cout << "closed client: " << clnt->getFd() << std::endl;
 				close(clnt->getFd());
 				_clients_manager.delClient(clnt->getFd());
 			}
+		}
+	}
+}
+
+void Server::eventTimerExec(struct kevent event) {
+	Client *clnt = _clients_manager.getClient(event.ident);
+	if (clnt != NULL) {
+		if (clnt->getPing()) {
+			clnt->setSendBuf(":irc.seoul42.com PING :ping pong\r\n");
+			clnt->setPing(false);
+			_kq.delEvent(clnt->getFd(), EVFILT_READ);
+			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
+		} else {
+			clnt->setSendBuf(":irc.seoul42.com NOTICE " + clnt->getNickname() + " :Incorrect PONG response received\r\n");
+			clnt->setPassed(false);
+			_kq.delEvent(clnt->getFd(), EVFILT_READ);
+			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 		}
 	}
 }
@@ -76,9 +97,11 @@ void Server::parsing(Client *clnt) {
 			flag = executer.nickCommand();
 		} else if (executer.getCommand() == "USER") {
 			flag = executer.userCommand();
-		} /* else if (executer.getCommand() == "PING") {
+		} else if (executer.getCommand() == "PING") {
 			flag = executer.pingCommand();
-		} else if (executer.getCommand() == "JOIN") {
+		} else if (executer.getCommand() == "PONG") {
+			flag = executer.pongCommand();
+		} /* else if (executer.getCommand() == "JOIN") {
 			flag = executer.joinCommand();
 		} else if (executer.getCommand() == "PRIVMSG") {
 			flag = executer.msgCommand();
@@ -93,7 +116,6 @@ void Server::parsing(Client *clnt) {
 		} else if (executer.getCommand() == "") {
 			flag = executer.moreCommand();
 		} */
-		std::cout << executer.getCommand() << ": " << flag << std::endl;
 		if (flag == ONLY) {
 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);

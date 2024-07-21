@@ -36,6 +36,11 @@ void Kqueue::delEvent(std::vector<int> fd_list, int filter) {
 	}
 }
 
+void Kqueue::setTimer(int fd) {
+	EV_SET(&change, fd, EVFILT_TIMER, EV_ADD|EV_ENABLE, 0, 60000, NULL);
+	change_list.push_back(change);
+}
+
 int Kqueue::updateEvent() {
 	int size = kevent(kq, &change_list[0], change_list.size(), events, MAX_CLIENTS, &timeout);
 	if (size == -1) {

@@ -36,7 +36,7 @@ int Executer::passCommand(std::string password) {
 		} else if (getParams(0) != password) {
 			throw std::logic_error(makeSource(SERVER) + " 464 " + _clnt->getNickname() + " :Password incorrect\r\n");
 		}
-		_clnt->setPassed();
+		_clnt->setPassed(true);
 	} catch (std::exception &e) {
 		_clnt->setSendBuf(e.what());
 		flag = ONLY;
@@ -80,18 +80,66 @@ int Executer::nickCommand() {
 }
 
 int Executer::userCommand() {
-	_clnt->setUsername(getParams(0));
-	_clnt->setRealname(getParams(3));
-	_clnt->setSendBuf(makeSource(SERVER) + " 001 " + _clnt->getNickname() + " :Welcome to the Internet Relay Network " + _clnt->getNickname() + "\r\n");
-	_clnt->setSendBuf(makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
-	_clnt->setSendBuf(makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
-	_clnt->setSendBuf(makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		}
+		if (_params.size() != 4) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " USER :Not enough parameters\r\n");
+		}
+		if (!_clnt->getUsername().empty()) {
+			throw std::logic_error(makeSource(SERVER) + " 462 " + _clnt->getNickname() + " :You may not reregister\r\n");
+		}
+		_clnt->setUsername(getParams(0));
+		_clnt->setRealname(getParams(3));
+		_clnt->setSendBuf(makeSource(SERVER) + " 001 " + _clnt->getNickname() + " :Welcome to the Internet Relay Network " + _clnt->getNickname() + "\r\n");
+		_clnt->setSendBuf(makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
+		_clnt->setSendBuf(makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
+		_clnt->setSendBuf(makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
+		_clnt->setSendBuf(makeSource(SERVER) + " PING :ping pong\r\n");
+		_clnt->setPing(false);
+	} catch (std::exception &e) {
+		_clnt->setSendBuf(e.what());
+	}
 	return ONLY;
 }
 
-// int Executer::pingCommand() {
-// 	_clnt->setSendBuf(makeSource(SERVER) + " PONG irc.seoul42.com " + getParams(0) + "\r\n");
-// }
+int Executer::pingCommand() {
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		}
+		if (_params.size() != 1) {
+			throw std::logic_error(makeSource(SERVER) + " 409 " + _clnt->getNickname() + " :No origin specified\r\n");
+		}
+		_clnt->setSendBuf(makeSource(SERVER) + " PONG irc.seoul42.com :" + getParams(0) + "\r\n");
+	} catch (std::exception &e) {
+		_clnt->setSendBuf(e.what());
+	}
+	return ONLY;
+}
+
+int Executer::pongCommand() {
+	int flag = NON;
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		}
+		if (_params.size() != 1) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
+		}
+		if (getParams(0) == "ping pong") {
+			_clnt->setPing(true);
+		} else {
+			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
+		}
+	} catch (std::exception &e) {
+		_clnt->setSendBuf(e.what());
+		flag = ONLY;
+	}
+	return flag;
+}
+
 
 std::string Executer::makeSource(bool is_clnt) {
 	std::string source;
@@ -102,4 +150,14 @@ std::string Executer::makeSource(bool is_clnt) {
 		source = ":irc.seoul42.com";
 	}
 	return source;
+}
+
+std::string Executer::makeTrailing(std::string message) {
+	std::string trailing = ":";
+
+	if (message.find(" ") != std::string::npos) {
+		return trailing + message;
+	} else {
+		return message;
+	}
 }
