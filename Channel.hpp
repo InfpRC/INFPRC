@@ -17,6 +17,10 @@ private:
 	size_t _limit;	  // 최대 인원 수
 	bool _inviteOnly; // 초대만 가능
 
+	time_t _created;
+	time_t _topic_created;
+	int _topic_author;
+
 	std::map<int, int> _clients; // fd, operator
 	std::set<int> _invited;		 // 초대된 인원
 	Channel();
@@ -26,10 +30,12 @@ public:
 	~Channel();
 
 	void setName(std::string const &name);
-	void setTopic(std::string const &topic);
 	void setKey(std::string const &key);
 	void setLimit(size_t limit);
 	void setInviteOnly(bool inviteOnly);
+
+	void setTopic(std::string const &topic, int author_fd);
+
 	void inviteClient(int fd);
 
 	void addClient(int fd, int chanops);
@@ -43,6 +49,10 @@ public:
 	bool getInviteOnly() const;
 	std::map<int, int> &getClients();
 	std::vector<int> getClientsFd();
+	
+	time_t getCreated();
+	time_t getTopicCreated();
+	int getTopicAuthor();
 
 	int isInvited(int fd);
 };
