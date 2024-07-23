@@ -28,17 +28,20 @@
 
 // PRIVMSG Error
 #define ERR_CANNOTSENDTOCHAN 404
+#define NON 0
+#define ONLY 1
+#define ALL 2
 
 
 class Executer {
 	private:
 		Client *_clnt;
-		DataManager *_data_manager;
-		std::string _prefix;
-		std::string _command;
 		std::vector<std::string> _params;
+		std::string _command;
+		DataManager *_data_manager;
 
 		std::string makeSource(bool is_clnt);
+		std::string makeTrailing(std::string message);
 
 	public:
 		Executer(Client *clnt, DataManager *data_manager);
@@ -46,12 +49,13 @@ class Executer {
 		std::string getCommand();
 		std::string getParams(int i);
 
-
-		void nickCommand();
-		void userCommand();
-		void pingCommand();
-		void joinCommand();
-		void privmsgCommand();
+		int passCommand(std::string password);
+		int nickCommand();
+		int userCommand();
+		int pingCommand();
+		int pongCommand();
+		int quitCommand();
+		int joinCommand();
 };
 
 #endif

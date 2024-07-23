@@ -3,8 +3,6 @@
 
 Channel::Channel(std::string const &name) {
 	_name = name;
-	_topic = "";
-  _key = "";
 	_limit = MAX_CLIENT;
 	_inviteOnly = false;
 }

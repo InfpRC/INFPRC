@@ -1,22 +1,22 @@
 
 #include "Socket.hpp"
 
-Socket::Socket(std::string &_port, std::string &_password) : port(strtod(_port.c_str(), 0)), password(_password), address_size(sizeof(address)) {
-	fd = socket(PF_INET, SOCK_STREAM, 0);
-	if (fd == -1)
+Socket::Socket(std::string &port) : _port(strtod(port.c_str(), 0)), _address_size(sizeof(_address)) {
+	_fd = socket(PF_INET, SOCK_STREAM, 0);
+	if (_fd == -1)
 		throw std::runtime_error("socket() error");
 	reusePort();
 	bindSock();
 	listenSock(10);
-	setNonBlock(fd);
+	setNonBlock(_fd);
 }
 
 Socket::~Socket() {}
 
 
 int Socket::acceptSock() {
-	memset(&address, 0, sizeof(address));
-	int clnt = accept(fd, (struct sockaddr *)&address, &address_size);
+	memset(&_address, 0, sizeof(_address));
+	int clnt = accept(_fd, (struct sockaddr *)&_address, &_address_size);
 	if (clnt == -1)
 		throw std::runtime_error("accept() error");
 	setNonBlock(clnt);
@@ -26,21 +26,21 @@ int Socket::acceptSock() {
 void Socket::reusePort() {
 	int option = true;
 	int optlen = sizeof(option);
-	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&option, optlen);
+	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&option, optlen);
 }
 
 void Socket::bindSock() {
-	memset(&address, 0, sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = htonl(INADDR_ANY);
-	address.sin_port = htons(port);
+	memset(&_address, 0, sizeof(_address));
+	_address.sin_family = AF_INET;
+	_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	_address.sin_port = htons(_port);
 
-	if (bind(fd, (struct sockaddr *)&address, sizeof(address)) == -1)
+	if (bind(_fd, (struct sockaddr *)&_address, sizeof(_address)) == -1)
 		throw std::runtime_error("bind() error");
 }
 
 void Socket::listenSock(int listen_size) {
-	if (listen(fd, listen_size) == -1)
+	if (listen(_fd, listen_size) == -1)
 		throw std::runtime_error("listen() error");
 }
 
@@ -49,5 +49,5 @@ void Socket::setNonBlock(int fd) {
 }
 
 int Socket::getFd() {
-	return fd;
+	return _fd;
 }

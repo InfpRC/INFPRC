@@ -17,8 +17,27 @@ void Kqueue::addEvent(int fd, int filter) {
 	change_list.push_back(change);
 }
 
+void Kqueue::addEvent(std::vector<int> fd_list, int filter) {
+	for (size_t i = 0; i < fd_list.size(); i++) {
+		EV_SET(&change, fd_list[i], filter, EV_ADD|EV_ENABLE, 0, 0, NULL);
+		change_list.push_back(change);
+	}
+}
+
 void Kqueue::delEvent(int fd, int filter) {
 	EV_SET(&change, fd, filter, EV_DELETE, 0, 0, NULL);
+	change_list.push_back(change);
+}
+
+void Kqueue::delEvent(std::vector<int> fd_list, int filter) {
+	for (size_t i = 0; i < fd_list.size(); i++) {
+		EV_SET(&change, fd_list[i], filter, EV_DELETE, 0, 0, NULL);
+		change_list.push_back(change);
+	}
+}
+
+void Kqueue::setTimer(int fd) {
+	EV_SET(&change, fd, EVFILT_TIMER, EV_ADD|EV_ENABLE, 0, 60000, NULL);
 	change_list.push_back(change);
 }
 
