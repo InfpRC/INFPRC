@@ -106,50 +106,41 @@ void Server::eventWriteExec(struct kevent event) {
 
 void Server::parsing(Client *clnt) {
 	while (clnt->getRecvBuf().size()) {
-		int flag = NON;
 		std::cout << clnt->getRecvBuf();
 		Executor executor(clnt, &_data_manager);
 		if (executor.getCommand() == "PASS") {
-			flag = executor.passCommand(_password);
+			executor.passCommand(_password);
 		}
 		else if (executor.getCommand() == "NICK") {
-			flag = executor.nickCommand();
+			executor.nickCommand();
 		}
 		else if (executor.getCommand() == "USER") {
-			flag = executor.userCommand();
+			executor.userCommand();
 		}
 		else if (executor.getCommand() == "PING") {
-			flag = executor.pingCommand();
+			executor.pingCommand();
 		}
 		// else if (executor.getCommand() == "PONG")
 		// {
-		// 	flag = executor.pongCommand();
+		// 	executor.pongCommand();
 		// }
 		else if (executor.getCommand() == "QUIT")
 		{
-			flag = executor.quitCommand();
+			executor.quitCommand();
 		}
 		else if (executor.getCommand() == "JOIN") {
-			flag = executor.joinCommand();
+			executor.joinCommand();
 		} /* else if (executor.getCommand() == "PRIVMSG") {
-			flag = executor.msgCommand();
+			executor.msgCommand();
 		} else if (executor.getCommand() == "PART") {
-			flag = executor.partCommand();
+			executor.partCommand();
 		} else if (executor.getCommand() == "KICK") {
-			flag = executor.kickCommand();
+			executor.kickCommand();
 		} else if (executor.getCommand() == "MODE") {
-			flag = executor.modeCommand();
+			executor.modeCommand();
 		} else if (executor.getCommand() == "") {
-			flag = executor.moreCommand();
+			executor.moreCommand();
 		} */
 		std::cout << clnt->getSendBuf();
-		if (flag == ONLY)
-		{
-			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
-		}
-		else if (flag == ALL)
-		{
-			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
-		}
 	}
 }

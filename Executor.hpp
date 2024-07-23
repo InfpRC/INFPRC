@@ -52,12 +52,12 @@ public:
 	std::string getCommand();
 	std::string getParams(int i);
 
-	int passCommand(std::string password);
-	int nickCommand();
-	int userCommand();
-	int pingCommand();
-	int quitCommand();
-	int joinCommand();
+	void passCommand(std::string password);
+	void nickCommand();
+	void userCommand();
+	void pingCommand();
+	void quitCommand();
+	void joinCommand();
 };
 
 #endif
