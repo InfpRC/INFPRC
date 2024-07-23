@@ -108,39 +108,39 @@ void Server::parsing(Client *clnt) {
 	while (clnt->getRecvBuf().size()) {
 		int flag = NON;
 		std::cout << clnt->getRecvBuf();
-		Executer executer(clnt, &_data_manager);
-		if (executer.getCommand() == "PASS") {
-			flag = executer.passCommand(_password);
+		Executor executor(clnt, &_data_manager);
+		if (executor.getCommand() == "PASS") {
+			flag = executor.passCommand(_password);
 		}
-		else if (executer.getCommand() == "NICK") {
-			flag = executer.nickCommand();
+		else if (executor.getCommand() == "NICK") {
+			flag = executor.nickCommand();
 		}
-		else if (executer.getCommand() == "USER") {
-			flag = executer.userCommand();
+		else if (executor.getCommand() == "USER") {
+			flag = executor.userCommand();
 		}
-		else if (executer.getCommand() == "PING") {
-			flag = executer.pingCommand();
+		else if (executor.getCommand() == "PING") {
+			flag = executor.pingCommand();
 		}
-		// else if (executer.getCommand() == "PONG")
+		// else if (executor.getCommand() == "PONG")
 		// {
-		// 	flag = executer.pongCommand();
+		// 	flag = executor.pongCommand();
 		// }
-		else if (executer.getCommand() == "QUIT")
+		else if (executor.getCommand() == "QUIT")
 		{
-			flag = executer.quitCommand();
+			flag = executor.quitCommand();
 		}
-		else if (executer.getCommand() == "JOIN") {
-			flag = executer.joinCommand();
-		} /* else if (executer.getCommand() == "PRIVMSG") {
-			flag = executer.msgCommand();
-		} else if (executer.getCommand() == "PART") {
-			flag = executer.partCommand();
-		} else if (executer.getCommand() == "KICK") {
-			flag = executer.kickCommand();
-		} else if (executer.getCommand() == "MODE") {
-			flag = executer.modeCommand();
-		} else if (executer.getCommand() == "") {
-			flag = executer.moreCommand();
+		else if (executor.getCommand() == "JOIN") {
+			flag = executor.joinCommand();
+		} /* else if (executor.getCommand() == "PRIVMSG") {
+			flag = executor.msgCommand();
+		} else if (executor.getCommand() == "PART") {
+			flag = executor.partCommand();
+		} else if (executor.getCommand() == "KICK") {
+			flag = executor.kickCommand();
+		} else if (executor.getCommand() == "MODE") {
+			flag = executor.modeCommand();
+		} else if (executor.getCommand() == "") {
+			flag = executor.moreCommand();
 		} */
 		std::cout << clnt->getSendBuf();
 		if (flag == ONLY)

@@ -1,7 +1,7 @@
 
-#include "Executer.hpp"
+#include "Executor.hpp"
 
-Executer::Executer(Client *clnt, DataManager *data_manager) 
+Executor::Executor(Client *clnt, DataManager *data_manager) 
 	: _clnt(clnt), _data_manager(data_manager) {
 	std::stringstream ss(clnt->getRecvBuf());
 	clnt->clearRecvBuf();
@@ -19,17 +19,17 @@ Executer::Executer(Client *clnt, DataManager *data_manager)
 	}
 }
 
-Executer::~Executer() {}
+Executor::~Executor() {}
 
-std::string Executer::getCommand() {
+std::string Executor::getCommand() {
 	return _command;
 }
 
-std::string Executer::getParams(int i) {
+std::string Executor::getParams(int i) {
 	return _params[i];
 }
 
-int Executer::passCommand(std::string password) {
+int Executor::passCommand(std::string password) {
 	int flag = NON;
 	try {
 		if (_clnt->getPassed()) {
@@ -45,7 +45,7 @@ int Executer::passCommand(std::string password) {
 	return flag;
 }
 
-int Executer::nickCommand() {
+int Executor::nickCommand() {
 	int flag = NON;
 	try {
 		if (!_clnt->getPassed()) {
@@ -79,7 +79,7 @@ int Executer::nickCommand() {
 	return flag;
 }
 
-int Executer::userCommand() {
+int Executor::userCommand() {
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
@@ -101,7 +101,7 @@ int Executer::userCommand() {
 	return ONLY;
 }
 
-int Executer::pingCommand() {
+int Executor::pingCommand() {
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
@@ -115,7 +115,7 @@ int Executer::pingCommand() {
 	return ONLY;
 }
 
-// int Executer::pongCommand() {
+// int Executor::pongCommand() {
 // 	int flag = NON;
 // 	try {
 // 		if (!_clnt->getPassed()) {
@@ -134,14 +134,14 @@ int Executer::pingCommand() {
 // 	return flag;
 // }
 
-int Executer::quitCommand() {
+int Executor::quitCommand() {
 	int flag = ALL;
 	_clnt->setSendBuf(makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
 	_clnt->setPassed(false);
 	return flag;
 }
 
-int Executer::joinCommand() {
+int Executor::joinCommand() {
 	std::stringstream ss_chan(getParams(0));
 	std::stringstream ss_key(getParams(1));
 	std::vector<std::string> chans;
@@ -215,7 +215,7 @@ int Executer::joinCommand() {
 	return ONLY;	
 }
 
-std::string Executer::makeSource(bool is_clnt) {
+std::string Executor::makeSource(bool is_clnt) {
 	std::string source;
 
 	if (is_clnt) {
@@ -226,7 +226,7 @@ std::string Executer::makeSource(bool is_clnt) {
 	return source;
 }
 
-std::string Executer::makeTrailing(std::string message) {
+std::string Executor::makeTrailing(std::string message) {
 	std::string trailing = ":";
 
 	if (message.find(" ") != std::string::npos) {

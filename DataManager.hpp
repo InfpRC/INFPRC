@@ -4,13 +4,13 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Kqueue.hpp"
-#include "Executer.hpp"
+#include "Executor.hpp"
 #include <map>
 
 class Client;
 class Channel;
 class Kqueue;
-class Executer;
+class Executor;
 
 class DataManager
 {
@@ -33,8 +33,8 @@ public:
 	int getFdByNickname(std::string nickname);
 	std::map<int, Client *> &getClients();
 
-	int setClientNickname(Client *clnt, Executer executer);
-	void setClientUsername(Client *clnt, Executer executer);
+	int setClientNickname(Client *clnt, Executor executor);
+	void setClientUsername(Client *clnt, Executor executor);
 
 
 
@@ -46,10 +46,10 @@ public:
 	std::map<std::string, Channel *> &getChannels();
 	void getChannelList();
 
-	int joinChannel(Client *clnt, Executer executer);
-	int partChannel(Client *clnt, Executer executer);
-	int inviteChannel(Client *clnt, Executer executer);
-	int kickChannel(Client *clnt, Executer executer);
+	int joinChannel(Client *clnt, Executor executor);
+	int partChannel(Client *clnt, Executor executor);
+	int inviteChannel(Client *clnt, Executor executor);
+	int kickChannel(Client *clnt, Executor executor);
 	void sendToClient(Client *clnt, std::string message);
 	void sendToChannel(Channel *chan, std::string message);
 	void sendToAll(std::string message);

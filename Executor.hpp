@@ -1,6 +1,6 @@
 
-#ifndef EXECUTER_HPP
-#define EXECUTER_HPP
+#ifndef EXECUTOR_HPP
+#define EXECUTOR_HPP
 
 #include <vector>
 #include <sstream>
@@ -35,7 +35,7 @@
 
 class DataManager;
 
-class Executer
+class Executor
 {
 private:
 	Client *_clnt;
@@ -47,8 +47,8 @@ private:
 	std::string makeTrailing(std::string message);
 
 public:
-	Executer(Client *clnt, DataManager *data_manager);
-	~Executer();
+	Executor(Client *clnt, DataManager *data_manager);
+	~Executor();
 	std::string getCommand();
 	std::string getParams(int i);
 

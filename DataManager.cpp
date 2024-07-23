@@ -45,8 +45,8 @@ std::map<int, Client *> &DataManager::getClients() {
 	return _clients;
 }
 
-int DataManager::setClientNickname(Client *clnt, Executer executer) {
-	std::string nickname = executer.getParams(0);
+int DataManager::setClientNickname(Client *clnt, Executor executor) {
+	std::string nickname = executor.getParams(0);
 	std::cout << "nickname: " << nickname << std::endl;
 	
 	// 중복 검사
@@ -59,9 +59,9 @@ int DataManager::setClientNickname(Client *clnt, Executer executer) {
 }
 
 
-void DataManager::setClientUsername(Client *clnt, Executer executer) {
-	std::string username = executer.getParams(0);
-	std::string realname = executer.getParams(3);
+void DataManager::setClientUsername(Client *clnt, Executor executor) {
+	std::string username = executor.getParams(0);
+	std::string realname = executor.getParams(3);
 	clnt->setUsername(username);
 	clnt->setRealname(realname);
 }
@@ -113,8 +113,8 @@ void DataManager::sendToAll(std::string message) {
 	}
 }
 
-int DataManager::partChannel(Client *clnt, Executer executer) {
-	std::string channel = executer.getParams(0);
+int DataManager::partChannel(Client *clnt, Executor executor) {
+	std::string channel = executor.getParams(0);
 	Channel *chan = getChannel(channel);
 	if (chan == NULL) {
 		return ERR_NOSUCHCHANNEL;
@@ -123,9 +123,9 @@ int DataManager::partChannel(Client *clnt, Executer executer) {
 	return SUCCESS;
 }
 
-int DataManager::inviteChannel(Client *clnt, Executer executer) {
-	std::string channel = executer.getParams(0);
-	std::string nickname = executer.getParams(1);
+int DataManager::inviteChannel(Client *clnt, Executor executor) {
+	std::string channel = executor.getParams(0);
+	std::string nickname = executor.getParams(1);
 	Channel *chan = getChannel(channel);
 	if (chan == NULL) {
 		return ERR_NOSUCHCHANNEL;
@@ -137,9 +137,9 @@ int DataManager::inviteChannel(Client *clnt, Executer executer) {
 
 
 
-// int DataManager::kickChannel(Client *clnt, Executer executer) {
-// 	std::string channel = executer.getParams(0);
-// 	std::string nickname = executer.getParams(1);
+// int DataManager::kickChannel(Client *clnt, Executor executor) {
+// 	std::string channel = executor.getParams(0);
+// 	std::string nickname = executor.getParams(1);
 // 	Channel *chan = getChannel(channel);
 // 	if (chan == NULL) {
 // 		return ERR_NOSUCHCHANNEL;
@@ -148,9 +148,9 @@ int DataManager::inviteChannel(Client *clnt, Executer executer) {
 // 	return SUCCESS;
 // }
 
-// int DataManager::sendToChannel(Client *clnt, Executer executer) {
-// 	std::string channel = executer.getParams(0).substr(1);
-// 	std::string message = executer.getParams(1);
+// int DataManager::sendToChannel(Client *clnt, Executor executor) {
+// 	std::string channel = executor.getParams(0).substr(1);
+// 	std::string message = executor.getParams(1);
 
 // 	Channel *chan = getChannel(channel);
 // 	if (chan == NULL) {

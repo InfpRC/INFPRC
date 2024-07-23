@@ -10,7 +10,7 @@
 #include "Client.hpp"
 #include "Kqueue.hpp"
 #include "Channel.hpp"
-#include "Executer.hpp"
+#include "Executor.hpp"
 #include "DataManager.hpp"
 
 class Message;
@@ -38,7 +38,7 @@ public:
 	void parsing(Client *clnt);
 
 	// JOIN
-	void joinChannel(Client *clnt, Executer executer);
+	void joinChannel(Client *clnt, Executor executor);
 
 	// PRIVMSG
 	void sendToChannel(Client *sender, std::string const &channel, std::string message);
