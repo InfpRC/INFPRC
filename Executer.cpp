@@ -1,7 +1,8 @@
 
 #include "Executer.hpp"
 
-Executer::Executer(Client *clnt, ClientsManager *clients_manager, ChannelsManager *channels_manager) : _clnt(clnt), _clients_manager(clients_manager), _channels_manager(channels_manager) {
+Executer::Executer(Client *clnt, DataManager *data_manager) 
+	: _clnt(clnt), _data_manager(data_manager) {
 	std::stringstream ss(clnt->getRecvBuf());
 	clnt->clearRecvBuf();
 	std::string token;
@@ -65,7 +66,7 @@ int Executer::nickCommand() {
 				throw std::logic_error(makeSource(SERVER) + " 432 " + _clnt->getNickname() + " :Erroneus nickname\r\n");
 			}
 		}
-		if (_clients_manager->getFdByNickname(nick) != -1) {
+		if (_data_manager->getFdByNickname(nick) != -1) {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
 		// _db->announce(_clnt->getFd(), makeSource(CLIENT) + " " + _clnt->getNickname() + " NICK " + nick + "\r\n");
@@ -159,7 +160,7 @@ int Executer::joinCommand() {
 		} else if (_params.empty()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " JOIN :Not enough parameters\r\n");
 		} for (size_t i = 0; i < chans.size(); i++) {
-			Channel *chan = _channels_manager->getChannel(chans[i].substr(1, chans[i].size()));
+			Channel *chan = _data_manager->getChannel(chans[i].substr(1, chans[i].size()));
 			if (chan == nullptr) {
 				// channel create
 			} else if (chan->getKey() != keys[i]) {

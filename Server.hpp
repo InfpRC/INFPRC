@@ -11,6 +11,7 @@
 #include "Kqueue.hpp"
 #include "Channel.hpp"
 #include "Executer.hpp"
+#include "DataManager.hpp"
 
 class Message;
 
@@ -20,9 +21,8 @@ private:
 	Socket _serv;
 	std::string _password;
 	Kqueue _kq;
-	
-	ChannelsManager _channels_manager;
-	ClientsManager _clients_manager;
+
+	DataManager _data_manager;
 
 public:
 	Server(std::string port, std::string password);
@@ -37,12 +37,7 @@ public:
 
 	void parsing(Client *clnt);
 
-	////NICK
-	//void setClientNickname(Client *clnt, std::string nickname);
-	////USER
-	//void setClientUsername(Client *clnt, Message message);
-
-	//JOIN
+	// JOIN
 	void joinChannel(Client *clnt, Executer executer);
 
 	// PRIVMSG
@@ -50,11 +45,6 @@ public:
 
 	void sendToAll(std::string _message);
 	void sendToClient(Client *sender, std::string const &receiver, std::string message);
-	
-	
-
-
-
 };
 
 #endif

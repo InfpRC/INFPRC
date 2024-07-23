@@ -69,6 +69,14 @@ std::map<int, int> &Channel::getClients() {
 	return _clients;
 }
 
+std::vector<int> Channel::getClientsFd() {
+	std::vector<int> fds;
+	for (std::map<int, int>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+		fds.push_back(it->first);
+	}
+	return fds;
+}
+
 int Channel::isInvited(int fd) {
 	if (_invited.find(fd) != _invited.end()) {
 		return 1;
