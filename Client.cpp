@@ -1,7 +1,7 @@
 
 #include "Client.hpp"
 
-Client::Client(int fd) : _fd(fd), _is_passed(false), _is_ping(true) {
+Client::Client(int fd) : _fd(fd), _is_passed(false) {
 	struct sockaddr_in client_addr;
 	socklen_t addr_len = sizeof(client_addr);
 
@@ -47,9 +47,9 @@ void Client::setPassed(bool flag) {
 	_is_passed = flag;
 }
 
-void Client::setPing(bool flag) {
-	_is_ping = flag;
-}
+// void Client::setPing(bool flag) {
+// 	_is_ping = flag;
+// }
 
 std::string Client::getNickname() const {
 	return _nickname;
@@ -87,9 +87,9 @@ bool Client::getPassed() const {
 	return _is_passed;
 }
 
-bool Client::getPing() const {
-	return _is_ping;
-}
+// bool Client::getPing() const {
+// 	return _is_ping;
+// }
 
 void Client::clearRecvBuf() {
 	_recv_buffer = _recv_buffer.substr(_recv_buffer.find("\r\n") + 2, _recv_buffer.size());

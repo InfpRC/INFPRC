@@ -1,7 +1,7 @@
 
 #include "Channel.hpp"
 
-Channel::Channel(std::string const &name): _name(name), _created(time(NULL)), _limit(-1), _inviteOnly(false) {
+Channel::Channel(std::string const &name): _name(name), _limit(-1), _inviteOnly(false), _created(time(NULL)) {
 }
 
 Channel::~Channel() {}

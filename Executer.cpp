@@ -69,7 +69,7 @@ int Executer::nickCommand() {
 		if (_data_manager->getFdByNickname(nick) != -1) {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
-		// _db->announce(_clnt->getFd(), makeSource(CLIENT) + " " + _clnt->getNickname() + " NICK " + nick + "\r\n");
+		_data_manager->sendToAll(makeSource(CLIENT) + " NICK " + nick + "\r\n");
 		flag = ALL;
 		_clnt->setNickname(getParams(0));
 	} catch (std::exception &e) {
@@ -94,8 +94,7 @@ int Executer::userCommand() {
 		_clnt->setSendBuf(makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
 		_clnt->setSendBuf(makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
 		_clnt->setSendBuf(makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
-		_clnt->setSendBuf(makeSource(SERVER) + " PING :ping pong\r\n");
-		_clnt->setPing(false);
+
 	} catch (std::exception &e) {
 		_clnt->setSendBuf(e.what());
 	}
@@ -116,24 +115,24 @@ int Executer::pingCommand() {
 	return ONLY;
 }
 
-int Executer::pongCommand() {
-	int flag = NON;
-	try {
-		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
-		} else if (_params.size() != 1) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
-		} else if (getParams(0) == "ping pong") {
-			_clnt->setPing(true);
-		} else {
-			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
-		}
-	} catch (std::exception &e) {
-		_clnt->setSendBuf(e.what());
-		flag = ONLY;
-	}
-	return flag;
-}
+// int Executer::pongCommand() {
+// 	int flag = NON;
+// 	try {
+// 		if (!_clnt->getPassed()) {
+// 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+// 		} else if (_params.size() != 1) {
+// 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
+// 		} else if (getParams(0) == "ping pong") {
+// 			_clnt->setPing(true);
+// 		} else {
+// 			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
+// 		}
+// 	} catch (std::exception &e) {
+// 		_clnt->setSendBuf(e.what());
+// 		flag = ONLY;
+// 	}
+// 	return flag;
+// }
 
 int Executer::quitCommand() {
 	int flag = ALL;
@@ -164,9 +163,12 @@ int Executer::joinCommand() {
 			int role = CHAN_MEM;
 			if (chan == nullptr) {
 				chan = new Channel(chans[i].substr(1, chans[i].size()));
+				_data_manager->addChannel(chan);
 				role = CHAN_OPR;
-			} else if (chan->getKey() != keys[i]) {
-				throw std::logic_error(makeSource(SERVER) + " 475 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+k)\r\n");
+			} else if (!chan->getKey().empty()) {
+				if (keys.size() <= i || keys[i] != chan->getKey()) {
+					throw std::logic_error(makeSource(SERVER) + " 475 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+k)\r\n");
+				}
 			} else if (chan->getLimit() > 0 && chan->getClientNum() >= chan->getLimit()) {
 				throw std::logic_error(makeSource(SERVER) + " 471 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+l)\r\n");
 			} else if (chan->getInviteOnly()) {
@@ -179,6 +181,33 @@ int Executer::joinCommand() {
 			chan->addClient(_clnt->getFd(), role);
 			/* join reply message */
 			// sendToChannel 사용!
+			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " JOIN :" + chans[i] + "\r\n");
+			
+			// join한 클라이언트에게 전송
+			if (!chan->getTopic().empty()) {
+				// 1. RPL_TOPIC (332): 채널의 주제를 전송합니다. 주제가 없을 경우 전송되지 않을 수 있습니다.
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 332 " + _clnt->getNickname() + " " + chans[i] + " :" + chan->getTopic() + "\r\n");
+				// 2. RPL_TOPICWHOTIME (333): 주제를 설정한 사용자와 시간을 전송합니다. (선택적)
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 333 " + _clnt->getNickname() + " " + chans[i] + /* " " + chan->setBy() + " " + chan->setTime() + */"\r\n");
+			}
+			
+			// RPL_NAMREPLY (353): 채널에 현재 참여하고 있는 클라이언트들의 리스트를 전송합니다.
+			std::string chan_clnt_list = makeSource(SERVER) + " 353 " + _clnt->getNickname() + " = " + chans[i] + " :";
+			std::vector<int> chan_clnts_fd = chan->getClientsFd();
+			for (size_t i = 0; i < chan->getClientNum(); i++) {
+				std::string prefix;
+				// if (chan->isOperator(chan_clnts_fd[i])) {
+				// 	prefix = '@';
+				// }
+				chan_clnt_list.append(prefix + _data_manager->getNicknameByFd(chan_clnts_fd[i]));
+				if (i != chan->getClientNum() - 1) {
+					chan_clnt_list.append(" ");
+				}
+			}
+			_data_manager->sendToClient(_clnt, chan_clnt_list + "\r\n");
+			// RPL_ENDOFNAMES (366): 클라이언트 리스트의 끝을 알리는 메시지입니다.
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 366 " + _clnt->getNickname() + " " + chans[i] + " :End of /NAMES list.\r\n");
+			
 		}
 	} catch (const std::exception& e) {
 		_clnt->setSendBuf(e.what());

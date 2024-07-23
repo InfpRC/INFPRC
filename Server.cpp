@@ -29,10 +29,10 @@ void Server::run() {
 			{
 				eventWriteExec(event);
 			}
-			else if (event.filter == EVFILT_TIMER)
-			{
-				eventTimerExec(event);
-			}
+			// else if (event.filter == EVFILT_TIMER)
+			// {
+			// 	eventTimerExec(event);
+			// }
 		}
 	}
 	close(_serv.getFd());
@@ -43,7 +43,7 @@ void Server::makeNewConnection() {
 	Client *clnt = new Client(clnt_sock);
 	_data_manager.addClient(clnt);
 	_kq.addEvent(clnt_sock, EVFILT_READ);
-	_kq.setTimer(clnt_sock);
+	// _kq.setTimer(clnt_sock);
 	std::cout << "connected client: " << clnt_sock << std::endl;
 }
 
@@ -82,23 +82,27 @@ void Server::eventWriteExec(struct kevent event) {
 	}
 }
 
-void Server::eventTimerExec(struct kevent event) {
-	Client *clnt = _data_manager.getClient(event.ident);
-	if (clnt != NULL) {
-		if (clnt->getPing()) {
-			clnt->setSendBuf(":irc.seoul42.com PING :ping pong\r\n");
-			clnt->setPing(false);
-			_kq.delEvent(clnt->getFd(), EVFILT_READ);
-			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
-		}
-		else {
-			clnt->setSendBuf(":irc.seoul42.com NOTICE " + clnt->getNickname() + " :Incorrect PONG response received\r\n");
-			clnt->setPassed(false);
-			_kq.delEvent(clnt->getFd(), EVFILT_READ);
-			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
-		}
-	}
-}
+// void Server::eventTimerExec(struct kevent event)
+// {
+// 	Client *clnt = _data_manager.getClient(event.ident);
+// 	if (clnt != NULL)
+// 	{
+// 		if (clnt->getPing())
+// 		{
+// 			clnt->setSendBuf(":irc.seoul42.com PING :ping pong\r\n");
+// 			clnt->setPing(false);
+// 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
+// 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
+// 		}
+// 		else
+// 		{
+// 			clnt->setSendBuf(":irc.seoul42.com NOTICE " + clnt->getNickname() + " :Incorrect PONG response received\r\n");
+// 			clnt->setPassed(false);
+// 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
+// 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
+// 		}
+// 	}
+// }
 
 void Server::parsing(Client *clnt) {
 	while (clnt->getRecvBuf().size()) {
@@ -117,10 +121,12 @@ void Server::parsing(Client *clnt) {
 		else if (executer.getCommand() == "PING") {
 			flag = executer.pingCommand();
 		}
-		else if (executer.getCommand() == "PONG") {
-			flag = executer.pongCommand();
-		}
-		else if (executer.getCommand() == "QUIT") {
+		// else if (executer.getCommand() == "PONG")
+		// {
+		// 	flag = executer.pongCommand();
+		// }
+		else if (executer.getCommand() == "QUIT")
+		{
 			flag = executer.quitCommand();
 		}
 		else if (executer.getCommand() == "JOIN") {
@@ -136,12 +142,13 @@ void Server::parsing(Client *clnt) {
 		} else if (executer.getCommand() == "") {
 			flag = executer.moreCommand();
 		} */
-		if (flag == ONLY) {
-			_kq.delEvent(clnt->getFd(), EVFILT_READ);
+		std::cout << clnt->getSendBuf();
+		if (flag == ONLY)
+		{
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 		}
-		else if (flag == ALL) {
-			_kq.delEvent(clnt->getFd(), EVFILT_READ); // vector로 담을 수 있도록 해야함.
+		else if (flag == ALL)
+		{
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 		}
 	}
