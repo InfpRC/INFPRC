@@ -32,6 +32,17 @@ void Client::setSendBuf(std::string message) {
 	_send_buffer.append(message);
 }
 
+void Client::addChannel(std::string channel) {
+	_joined_channels.insert(channel);
+}
+
+void Client::delChannel(std::string channel) {
+	std::set<std::string>::iterator it = _joined_channels.find(channel);
+	if (it != _joined_channels.end()) {
+		_joined_channels.erase(it);
+	}
+}
+
 std::string Client::getNickname() const {
 	return _nickname;
 }
@@ -58,6 +69,10 @@ std::string Client::getRecvBuf() const {
 
 std::string Client::getSendBuf() const {
 	return _send_buffer;
+}
+
+std::set<std::string> Client::getJoinedChannels() const {
+	return _joined_channels;
 }
 
 void Client::clearRecvBuf() {

@@ -4,6 +4,7 @@
 
 #include <map>
 #include <set>
+#include <vector>
 #include "Client.hpp"
 
 #define MAX_CLIENT 10
@@ -42,7 +43,8 @@ public:
 	std::string const &getKey() const;
 	size_t getLimit() const;
 	bool getInviteOnly() const;
-	std::map<int, int> &getClients();
+  std::map<int, int> &getClients();
+	std::vector<int> getClientsFd();
 	
 	int isInvited(int fd);
 };

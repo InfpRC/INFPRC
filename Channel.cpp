@@ -68,7 +68,15 @@ size_t Channel::getClientNum() {
 }
 
 std::map<int, int> &Channel::getClients() {
-	return _clients;
+  return _clients;
+}
+
+std::vector<int> Channel::getClientsFd() {
+  std::vector<int> fds;
+  for (auto it = _clients.begin(); it != _clients.end(); it++) {
+    fds.push_back(it->first);
+  }
+  return fds;
 }
 
 int Channel::isInvited(int fd) {

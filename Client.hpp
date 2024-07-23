@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-
+#include <set>
 
 #define BUFFER_SIZE 100
 #define END 0
@@ -25,6 +25,8 @@ private:
 	std::string _recv_buffer;
 	std::string _send_buffer;
 
+	std::set<std::string> _joined_channels;
+
 public:
 	Client(int _fd);
 	~Client();
@@ -34,6 +36,8 @@ public:
 	void setRealname(std::string const &realname);
 	void setRecvBuf(std::string message);
 	void setSendBuf(std::string message);
+	void addChannel(std::string channel);
+	void delChannel(std::string channel);
 
 	int getFd() const;
 	std::string getNickname() const;
@@ -42,6 +46,7 @@ public:
 	std::string getRealname() const;
 	std::string getRecvBuf() const;
 	std::string getSendBuf() const;
+	std::set<std::string> getJoinedChannels() const;
 
 	void clearRecvBuf();
 	void clearSendBuf();

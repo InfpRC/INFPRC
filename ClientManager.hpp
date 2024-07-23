@@ -1,5 +1,5 @@
-#ifndef CLIENTSMANAGER_HPP
-#define CLIENTSMANAGER_HPP
+#ifndef CLIENTMANAGER_HPP
+#define CLIENTMANAGER_HPP
 
 #include <map>
 #include <algorithm>
@@ -9,14 +9,15 @@
 
 class Executer;
 
-class ClientsManager
+class ClientManager
 {
 private:
 	std::map<int, Client *> _clients;
+	Kqueue *_kq;
 
 public:
-	ClientsManager();
-	~ClientsManager();
+	ClientManager(Kqueue *kq);
+	~ClientManager();
 
 	void addClient(Client *clnt);
 	void delClient(int fd);
@@ -25,9 +26,8 @@ public:
 	int getFdByNickname(std::string nickname);
 	std::map<int, Client *> &getClients();
 
-	void setClientNickname(Client *clnt, std::string nickname, Kqueue &kq);
-	void setClientUsername(Client *clnt, Executer executer, Kqueue &kq);
+	int setClientNickname(Client *clnt, Executer executer);
+	void setClientUsername(Client *clnt, Executer executer);
 };
-
 
 #endif
