@@ -1,20 +1,13 @@
 
 #include "Channel.hpp"
 
-Channel::Channel(std::string const &name) {
-	_name = name;
-	_limit = -1;
-	_inviteOnly = false;
+Channel::Channel(std::string const &name): _name(name), _created(time(NULL)), _limit(-1), _inviteOnly(false) {
 }
 
 Channel::~Channel() {}
 
 void Channel::setName(std::string const &name) {
 	_name = name;
-}
-
-void Channel::setTopic(std::string const &topic) {
-	_topic = topic;
 }
 
 void Channel::setKey(std::string const &key) {
@@ -27,6 +20,12 @@ void Channel::setLimit(size_t limit) {
 
 void Channel::setInviteOnly(bool inviteOnly) {
 	_inviteOnly = inviteOnly;
+}
+
+void Channel::setTopic(std::string const &topic, int author_fd) {
+	_topic = topic;
+	_topic_created = time(NULL);
+	_topic_author = author_fd;
 }
 
 void Channel::inviteClient(int fd) {
