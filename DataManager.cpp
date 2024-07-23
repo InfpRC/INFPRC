@@ -153,25 +153,25 @@ int DataManager::inviteChannel(Client *clnt, Executer executer) {
 	return SUCCESS;
 }
 
-int DataManager::kickChannel(Client *clnt, Executer executer) {
-	std::string channel = executer.getParams(0);
-	std::string nickname = executer.getParams(1);
-	Channel *chan = getChannel(channel);
-	if (chan == NULL) {
-		return ERR_NOSUCHCHANNEL;
-	}
+// int DataManager::kickChannel(Client *clnt, Executer executer) {
+// 	std::string channel = executer.getParams(0);
+// 	std::string nickname = executer.getParams(1);
+// 	Channel *chan = getChannel(channel);
+// 	if (chan == NULL) {
+// 		return ERR_NOSUCHCHANNEL;
+// 	}
 	
-	return SUCCESS;
-}
+// 	return SUCCESS;
+// }
 
-int DataManager::sendToChannel(Client *clnt, Executer executer) {
-  std::string channel = executer.getParams(0).substr(1);
-  std::string message = executer.getParams(1);
+// int DataManager::sendToChannel(Client *clnt, Executer executer) {
+// 	std::string channel = executer.getParams(0).substr(1);
+// 	std::string message = executer.getParams(1);
 
-  Channel *chan = getChannel(channel);
-  if (chan == NULL) {
-  }
-}
+// 	Channel *chan = getChannel(channel);
+// 	if (chan == NULL) {
+// 	}
+// }
 
 bool DataManager::isChannelOperator(Channel *chan, Client *clnt) {
 	if (chan->getClients().find(clnt->getFd()) == chan->getClients().end()) {
