@@ -41,6 +41,10 @@ int DataManager::getFdByNickname(std::string nickname) {
 	return -1;
 }
 
+std::map<int, Client *> &DataManager::getClients() {
+	return _clients;
+}
+
 int DataManager::setClientNickname(Client *clnt, Executer executer) {
 	std::string nickname = executer.getParams(0);
 	std::cout << "nickname: " << nickname << std::endl;
@@ -99,6 +103,13 @@ void DataManager::sendToChannel(Channel *chan, std::string message) {
 	std::vector<int> fds = chan->getClientsFd();
 	for (size_t i = 0; i < fds.size(); i++) {
 		sendToClient(getClient(fds[i]), message);
+	}
+}
+
+void DataManager::sendToAll(std::string message) {
+	for (std::map<int, Client *>::iterator iter = _clients.begin(); iter != _clients.end(); iter++) {
+		std::cout << iter->second->getNickname() << std::endl;
+		sendToClient(iter->second, message);
 	}
 }
 

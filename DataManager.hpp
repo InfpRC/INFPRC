@@ -52,6 +52,7 @@ public:
 	int kickChannel(Client *clnt, Executer executer);
 	void sendToClient(Client *clnt, std::string message);
 	void sendToChannel(Channel *chan, std::string message);
+	void sendToAll(std::string message);
 
 	bool isChannelOperator(Channel *chan, Client *clnt);
 	bool isChannelMember(Channel *chan, Client *clnt);
