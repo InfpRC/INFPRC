@@ -7,7 +7,6 @@
 #include <vector>
 #include "Client.hpp"
 
-#define MAX_CLIENT 10
 
 class Channel
 {

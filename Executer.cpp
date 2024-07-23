@@ -161,17 +161,24 @@ int Executer::joinCommand() {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " JOIN :Not enough parameters\r\n");
 		} for (size_t i = 0; i < chans.size(); i++) {
 			Channel *chan = _data_manager->getChannel(chans[i].substr(1, chans[i].size()));
+			int role = CHAN_MEM;
 			if (chan == nullptr) {
-				// channel create
+				chan = new Channel(chans[i].substr(1, chans[i].size()));
+				role = CHAN_OPR;
 			} else if (chan->getKey() != keys[i]) {
 				throw std::logic_error(makeSource(SERVER) + " 475 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+k)\r\n");
-			}
-			/* channel mode +l 일 때 최대 크기를 넘어선 경우 error message */
-			/* invite only channel error message */
-			else if (chans[i][0] != '#') {
+			} else if (chan->getLimit() > 0 && chan->getClientNum() >= chan->getLimit()) {
+				throw std::logic_error(makeSource(SERVER) + " 471 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+l)\r\n");
+			} else if (chan->getInviteOnly()) {
+				if (chan->isInvited(_clnt->getFd()) == 0) {
+					throw std::logic_error(makeSource(SERVER) + " 473 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+i)\r\n");
+				}
+			} else if (chans[i][0] != '#') {
 				throw std::logic_error(makeSource(SERVER) + " 476 " + chans[i] + " :Bad Channel Mask\r\n");
 			}
+			chan->addClient(_clnt->getFd(), role);
 			/* join reply message */
+			// sendToChannel 사용!
 		}
 	} catch (const std::exception& e) {
 		_clnt->setSendBuf(e.what());
