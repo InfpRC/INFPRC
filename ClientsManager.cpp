@@ -9,6 +9,7 @@ void ClientsManager::addClient(Client *clnt) {
 }
 
 void ClientsManager::delClient(int fd) {
+	delete _clients[fd];
 	_clients.erase(fd);
 }
 
@@ -30,7 +31,7 @@ std::string ClientsManager::getNicknameByFd(int fd) {
 
 int ClientsManager::getFdByNickname(std::string nickname) {
 	std::map<int, Client *>::const_iterator it = _clients.begin();
-	while (it != _clients.end()) {
+	while (it != _clients.begin()) {
 		if (it->second->getNickname() == nickname) {
 			return it->first;
 		}

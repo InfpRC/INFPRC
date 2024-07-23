@@ -18,21 +18,22 @@ class Server
 {
 private:
 	Socket _serv;
+	std::string _password;
 	Kqueue _kq;
 	
-	ChannelsManager _channelsManager;
-	ClientsManager _clientsManager;
-
-	void echoService(Client &clnt);
-	void channelService(Client &clnt);
+	ChannelsManager _channels_manager;
+	ClientsManager _clients_manager;
 
 public:
-	Server(std::string _port, std::string _password);
+	Server(std::string port, std::string password);
 	~Server();
 
 	void run();
 
 	void makeNewConnection();
+	void eventReadExec(struct kevent event);
+	void eventWriteExec(struct kevent event);
+	void eventTimerExec(struct kevent event);
 
 	void parsing(Client *clnt);
 

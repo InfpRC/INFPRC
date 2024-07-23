@@ -17,6 +17,8 @@ class Client
 {
 private:
 	int _fd;
+	bool _is_passed;
+	bool _is_ping;
 	std::string _nickname;
 	std::string _username;
 	std::string _realname;
@@ -34,6 +36,8 @@ public:
 	void setRealname(std::string const &realname);
 	void setRecvBuf(std::string message);
 	void setSendBuf(std::string message);
+	void setPassed(bool flag);
+	void setPing(bool flag);
 
 	int getFd() const;
 	std::string getNickname() const;
@@ -42,6 +46,8 @@ public:
 	std::string getRealname() const;
 	std::string getRecvBuf() const;
 	std::string getSendBuf() const;
+	bool getPassed() const;
+	bool getPing() const;
 
 	void clearRecvBuf();
 	void clearSendBuf();
