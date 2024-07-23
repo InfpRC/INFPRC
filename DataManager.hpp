@@ -50,7 +50,8 @@ public:
 	int partChannel(Client *clnt, Executer executer);
 	int inviteChannel(Client *clnt, Executer executer);
 	int kickChannel(Client *clnt, Executer executer);
-	int sendToChannel(Client *clnt, Executer executer);
+	void sendToClient(Client *clnt, std::string message);
+	void sendToChannel(Channel *chan, std::string message);
 
 	bool isChannelOperator(Channel *chan, Client *clnt);
 	bool isChannelMember(Channel *chan, Client *clnt);

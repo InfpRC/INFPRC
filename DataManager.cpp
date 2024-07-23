@@ -90,45 +90,16 @@ void DataManager::getChannelList() {
 	}
 }
 
-int DataManager::joinChannel(Client *clnt, Executer executer)
-{
-	std::string channel = executer.getParams(0);
-	std::string key = executer.getParams(1);
-	Channel *chan = getChannel(channel);
+void DataManager::sendToClient(Client *clnt, std::string message) {
+	clnt->setSendBuf(message);
+	_kq->addEvent(clnt->getFd(), EVFILT_WRITE);
+}
 
-	// 없는 채널일 경우 새로 생성
-	if (chan == NULL) {
-		Channel *new_chan = new Channel(channel);
-		addChannel(new_chan);
-		// 관리자로 추가
-		new_chan->addClient(clnt->getFd(), 1);
-		// 비밀번호 있으면 설정
-		if (key.size() > 0) {
-			new_chan->setKey(key);
-		}
-
-	} else {
-
-		// 초대 전용 채널일 경우
-		if (chan->getInviteOnly()) {
-			// 초대된 클라이언트인지 확인
-			if (chan->isInvited(clnt->getFd()) == 0) {
-				return ERR_INVITEONLYCHAN;
-			}
-		}
-
-		// 비밀번호 확인
-		if (chan->getKey() != "" && chan->getKey() != key) {
-			return ERR_BADCHANNELKEY;
-		}
-
-		// 인원 제한 확인
-		if (chan->getLimit() > 0 && chan->getClientNum() >= chan->getLimit()) {
-			return ERR_CHANNELISFULL;
-		}
-		chan->addClient(clnt->getFd(), 0);
+void DataManager::sendToChannel(Channel *chan, std::string message) {
+	std::vector<int> fds = chan->getClientsFd();
+	for (size_t i = 0; i < fds.size(); i++) {
+		sendToClient(getClient(fds[i]), message);
 	}
-		return SUCCESS;
 }
 
 int DataManager::partChannel(Client *clnt, Executer executer) {
@@ -152,6 +123,8 @@ int DataManager::inviteChannel(Client *clnt, Executer executer) {
 	chan->inviteClient(fd);
 	return SUCCESS;
 }
+
+
 
 // int DataManager::kickChannel(Client *clnt, Executer executer) {
 // 	std::string channel = executer.getParams(0);

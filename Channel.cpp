@@ -3,7 +3,7 @@
 
 Channel::Channel(std::string const &name) {
 	_name = name;
-	_limit = MAX_CLIENT;
+	_limit = -1;
 	_inviteOnly = false;
 }
 
