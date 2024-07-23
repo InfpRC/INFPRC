@@ -94,8 +94,7 @@ int Executer::userCommand() {
 		_clnt->setSendBuf(makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
 		_clnt->setSendBuf(makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
 		_clnt->setSendBuf(makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
-		_clnt->setSendBuf(makeSource(SERVER) + " PING :ping pong\r\n");
-		_clnt->setPing(false);
+
 	} catch (std::exception &e) {
 		_clnt->setSendBuf(e.what());
 	}
@@ -116,24 +115,24 @@ int Executer::pingCommand() {
 	return ONLY;
 }
 
-int Executer::pongCommand() {
-	int flag = NON;
-	try {
-		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
-		} else if (_params.size() != 1) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
-		} else if (getParams(0) == "ping pong") {
-			_clnt->setPing(true);
-		} else {
-			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
-		}
-	} catch (std::exception &e) {
-		_clnt->setSendBuf(e.what());
-		flag = ONLY;
-	}
-	return flag;
-}
+// int Executer::pongCommand() {
+// 	int flag = NON;
+// 	try {
+// 		if (!_clnt->getPassed()) {
+// 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+// 		} else if (_params.size() != 1) {
+// 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
+// 		} else if (getParams(0) == "ping pong") {
+// 			_clnt->setPing(true);
+// 		} else {
+// 			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
+// 		}
+// 	} catch (std::exception &e) {
+// 		_clnt->setSendBuf(e.what());
+// 		flag = ONLY;
+// 	}
+// 	return flag;
+// }
 
 int Executer::quitCommand() {
 	int flag = ALL;

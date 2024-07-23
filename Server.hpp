@@ -33,7 +33,7 @@ public:
 	void makeNewConnection();
 	void eventReadExec(struct kevent event);
 	void eventWriteExec(struct kevent event);
-	void eventTimerExec(struct kevent event);
+	// void eventTimerExec(struct kevent event);
 
 	void parsing(Client *clnt);
 
