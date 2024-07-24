@@ -41,6 +41,9 @@ void Server::run() {
 void Server::makeNewConnection() {
 	int clnt_sock = _serv.acceptSock();
 	Client *clnt = new Client(clnt_sock);
+	if (_password.empty()) {
+		clnt->setPassed(true);
+	}
 	_data_manager.addClient(clnt);
 	_kq.addEvent(clnt_sock, EVFILT_READ);
 	// _kq.setTimer(clnt_sock);
