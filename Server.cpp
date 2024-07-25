@@ -134,10 +134,10 @@ void Server::parsing(Client *clnt) {
 		}
 		else if (executer.getCommand() == "JOIN") {
 			flag = executer.joinCommand();
-		} /* else if (executer.getCommand() == "PRIVMSG") {
-			flag = executer.msgCommand();
 		} else if (executer.getCommand() == "PART") {
 			flag = executer.partCommand();
+		} /* else if (executer.getCommand() == "PRIVMSG") {
+			flag = executer.msgCommand();
 		} else if (executer.getCommand() == "KICK") {
 			flag = executer.kickCommand();
 		} else if (executer.getCommand() == "MODE") {
