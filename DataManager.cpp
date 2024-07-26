@@ -174,4 +174,16 @@ bool DataManager::isChannelMember(Channel *chan, Client *clnt) {
 	return true;
 }
 
+void DataManager::addClientToChannel(Client *clnt, Channel *chan, int chanops) {
+	chan->addClient(clnt->getFd(), chanops);
+	clnt->addChannel(chan->getName());
+}
+
+void DataManager::delClientFromChannel(Client *clnt, Channel *chan) {
+	chan->delClient(clnt->getFd());
+	clnt->delChannel(chan->getName());
+	if (chan->getClientNum() == 0) {
+		delChannel(chan->getName());
+	}
+}
 
