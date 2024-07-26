@@ -44,7 +44,6 @@ private:
 	DataManager *_data_manager;
 
 	std::string makeSource(bool is_clnt);
-	std::string makeTrailing(std::string message);
 
 public:
 	Executor(Client *clnt, DataManager *data_manager);
@@ -56,8 +55,10 @@ public:
 	void nickCommand();
 	void userCommand();
 	void pingCommand();
+	void pongCommand();
 	void quitCommand();
 	void joinCommand();
+	void modeCommand();
 };
 
 #endif

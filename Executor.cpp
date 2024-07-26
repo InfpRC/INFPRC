@@ -89,6 +89,7 @@ void Executor::userCommand() {
 		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
 		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
 		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
+		_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
 	} catch (std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
@@ -107,27 +108,24 @@ void Executor::pingCommand() {
 	}
 }
 
-// void Executor::pongCommand() {
-// 	int flag = NON;
-// 	try {
-// 		if (!_clnt->getPassed()) {
-// 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
-// 		} else if (_params.size() != 1) {
-// 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
-// 		} else if (getParams(0) == "ping pong") {
-// 			_clnt->setPing(true);
-// 		} else {
-// 			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
-// 		}
-// 	} catch (std::exception &e) {
-// 		_clnt->setSendBuf(e.what());
-// 		flag = ONLY;
-// 	}
-// 	return flag;
-// }
+void Executor::pongCommand() {
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.size() != 1) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
+		} else if (getParams(0) == "ping pong") {
+			_clnt->setPing(true);
+		} else {
+			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
+		}
+	} catch (std::exception &e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
 
 void Executor::quitCommand() {
-	_clnt->setSendBuf(makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
+	_data_manager->sendToClient(_clnt, makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
 	_clnt->setPassed(false);
 }
 
@@ -200,7 +198,24 @@ void Executor::joinCommand() {
 			
 		}
 	} catch (const std::exception& e) {
-		_clnt->setSendBuf(e.what());
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
+
+void Executor::modeCommand() {
+	std::string channel_name = getParams(0);
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_data_manager->getChannel(channel_name.substr(1, channel_name.size())) == nullptr) {
+			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + channel_name + " :No such channel");
+		}
+		if (_params.size() == 1) {
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 324 " + _clnt->getNickname() + " " + channel_name /* + mode */);
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 329 " + _clnt->getNickname() + " " + channel_name /* + createTime */);
+		}
+	} catch (const std::exception &e) {
+		_data_manager->sendToClient(_clnt, e.what());
 	}
 }
 
@@ -213,14 +228,4 @@ std::string Executor::makeSource(bool is_clnt) {
 		source = ":irc.seoul42.com";
 	}
 	return source;
-}
-
-std::string Executor::makeTrailing(std::string message) {
-	std::string trailing = ":";
-
-	if (message.find(" ") != std::string::npos) {
-		return trailing + message;
-	} else {
-		return message;
-	}
 }

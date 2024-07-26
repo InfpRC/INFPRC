@@ -135,8 +135,6 @@ int DataManager::inviteChannel(Client *clnt, Executor executor) {
 	return SUCCESS;
 }
 
-
-
 // int DataManager::kickChannel(Client *clnt, Executor executor) {
 // 	std::string channel = executor.getParams(0);
 // 	std::string nickname = executor.getParams(1);

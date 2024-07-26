@@ -12,26 +12,22 @@ void Server::run() {
 		int size = _kq.updateEvent();
 		for (int i = 0; i < size; i++) {
 			struct kevent event = _kq.getEvent(i);
-			if (event.flags & EV_ERROR)
-			{
+			if (event.flags & EV_ERROR) {
 				std::cerr << "EV_ERROR: " << event.data << std::endl;
 			}
-			if (static_cast<int>(event.ident) == _serv.getFd())
-			{
+			if (static_cast<int>(event.ident) == _serv.getFd()) {
 				makeNewConnection();
 			}
-			else if (event.filter == EVFILT_READ)
-			{
+			else if (event.filter == EVFILT_READ) {
 				eventReadExec(event);
 			}
-			else if (event.filter == EVFILT_WRITE)
-			{
+			else if (event.filter == EVFILT_WRITE) {
 				eventWriteExec(event);
 			}
-			// else if (event.filter == EVFILT_TIMER)
-			// {
-			// 	eventTimerExec(event);
-			// }
+			else if (event.filter == EVFILT_TIMER)
+			{
+				eventTimerExec(event);
+			}
 		}
 	}
 	close(_serv.getFd());
@@ -81,27 +77,27 @@ void Server::eventWriteExec(struct kevent event) {
 	}
 }
 
-// void Server::eventTimerExec(struct kevent event)
-// {
-// 	Client *clnt = _data_manager.getClient(event.ident);
-// 	if (clnt != NULL)
-// 	{
-// 		if (clnt->getPing())
-// 		{
-// 			clnt->setSendBuf(":irc.seoul42.com PING :ping pong\r\n");
-// 			clnt->setPing(false);
-// 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
-// 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
-// 		}
-// 		else
-// 		{
-// 			clnt->setSendBuf(":irc.seoul42.com NOTICE " + clnt->getNickname() + " :Incorrect PONG response received\r\n");
-// 			clnt->setPassed(false);
-// 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
-// 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
-// 		}
-// 	}
-// }
+void Server::eventTimerExec(struct kevent event)
+{
+	Client *clnt = _data_manager.getClient(event.ident);
+	if (clnt != NULL)
+	{
+		if (clnt->getPing())
+		{
+			clnt->setSendBuf(":irc.seoul42.com PING :ping pong\r\n");
+			clnt->setPing(false);
+			_kq.delEvent(clnt->getFd(), EVFILT_READ);
+			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
+		}
+		else
+		{
+			clnt->setSendBuf(":irc.seoul42.com NOTICE " + clnt->getNickname() + " :Incorrect PONG response received\r\n");
+			clnt->setPassed(false);
+			_kq.delEvent(clnt->getFd(), EVFILT_READ);
+			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
+		}
+	}
+}
 
 void Server::parsing(Client *clnt) {
 	while (clnt->getRecvBuf().size()) {
