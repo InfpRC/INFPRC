@@ -177,7 +177,7 @@ int Executer::joinCommand() {
 			} else if (chans[i][0] != '#') {
 				throw std::logic_error(makeSource(SERVER) + " 476 " + chans[i] + " :Bad Channel Mask\r\n");
 			}
-			chan->addClient(_clnt->getFd(), role);
+			_data_manager->addClientToChannel(_clnt, chan, role);
 			/* join reply message */
 			// sendToChannel 사용!
 			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " JOIN :" + chans[i] + "\r\n");
