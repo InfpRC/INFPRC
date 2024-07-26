@@ -159,7 +159,7 @@ bool DataManager::isChannelOperator(Channel *chan, Client *clnt) {
 	if (chan->getClients().find(clnt->getFd()) == chan->getClients().end()) {
 		return false;
 	}
-	if (chan->getClients()[clnt->getFd()] == 1) {
+	if (chan->getClients()[clnt->getFd()] == CHAN_OPR) {
 		return true;
 	}
 	return false;
@@ -185,3 +185,11 @@ void DataManager::delClientFromChannel(Client *clnt, Channel *chan) {
 	}
 }
 
+void DataManager::sendToClientChannels(Client *clnt, std::string message) {
+	std::set<std::string> channels = clnt->getJoinedChannels();
+	std::set<std::string>::iterator it;
+	for (it = channels.begin(); it != channels.end(); it++) {
+		Channel *chan = getChannel(*it);
+		sendToChannel(chan, message);
+	}
+}

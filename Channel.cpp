@@ -37,8 +37,15 @@ void Channel::addClient(int fd, int chanops) {
 }
 
 void Channel::delClient(int fd) {
-
 	_clients.erase(fd);
+}
+
+void Channel::addOperator(int fd) {
+	_clients[fd] = CHAN_OPR;
+}
+
+void Channel::delOperator(int fd) {
+	_clients[fd] = CHAN_MEM;
 }
 
 std::string const &Channel::getName() const {
