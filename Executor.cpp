@@ -26,14 +26,18 @@ std::string Executor::getCommand() {
 }
 
 std::string Executor::getParams(int i) {
-	return _params[i];
+	if (_params.size() < (size_t)i) {
+		return _params[i];
+	} else {
+		return "";
+	}
 }
 
 void Executor::passCommand(std::string password) {
 	try {
 		if (_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 462 " + _clnt->getNickname() + " :You may not reregister\r\n");
-		} else if (getParams(0) != password) {
+		} else if (password != "" && getParams(0) != password) {
 			throw std::logic_error(makeSource(SERVER) + " 464 " + _clnt->getNickname() + " :Password incorrect\r\n");
 		}
 		_clnt->setPassed(true);
@@ -184,9 +188,9 @@ void Executor::joinCommand() {
 			std::vector<int> chan_clnts_fd = chan->getClientsFd();
 			for (size_t i = 0; i < chan->getClientNum(); i++) {
 				std::string prefix;
-				// if (chan->isOperator(chan_clnts_fd[i])) {
-				// 	prefix = '@';
-				// }
+				if (chan->isOperator(chan_clnts_fd[i])) {
+					prefix = '@';
+				}
 				chan_clnt_list.append(prefix + _data_manager->getNicknameByFd(chan_clnts_fd[i]));
 				if (i != chan->getClientNum() - 1) {
 					chan_clnt_list.append(" ");
@@ -204,16 +208,23 @@ void Executor::joinCommand() {
 
 void Executor::modeCommand() {
 	std::string channel_name = getParams(0);
+	Channel *chan = _data_manager->getChannel(channel_name.substr(1, channel_name.size()));;
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
-		} else if (_data_manager->getChannel(channel_name.substr(1, channel_name.size())) == nullptr) {
+		} else if (chan == nullptr) {
 			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + channel_name + " :No such channel");
-		}
-		if (_params.size() == 1) {
+		} else if (_params.size() == 1) {
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 324 " + _clnt->getNickname() + " " + channel_name /* + mode */);
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 329 " + _clnt->getNickname() + " " + channel_name /* + createTime */);
+			return ;
+		} else if (!chan->isOperator(_clnt->getFd())) {
+			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + channel_name + " :You're not channel operator");
 		}
+		std::string chan_mode;
+		// for (int i = 1; i < params.size(); i++) {
+		// 	if (params[i] == )
+		// }
 	} catch (const std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
