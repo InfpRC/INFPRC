@@ -37,6 +37,7 @@ void Channel::addClient(int fd, int chanops) {
 }
 
 void Channel::delClient(int fd) {
+
 	_clients.erase(fd);
 }
 
@@ -74,6 +75,18 @@ std::vector<int> Channel::getClientsFd() {
 		fds.push_back(it->first);
 	}
 	return fds;
+}
+
+time_t Channel::getCreated() {
+	return _created;
+}
+
+time_t Channel::getTopicCreated() {
+	return _topic_created;
+}
+
+int Channel::getTopicAuthor() {
+	return _topic_author;
 }
 
 int Channel::isInvited(int fd) {
