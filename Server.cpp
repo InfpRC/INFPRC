@@ -1,8 +1,7 @@
 
 #include "Server.hpp"
 
-Server::Server(std::string _port, std::string password) : _serv(_port), _password(password), _kq(), _data_manager(&_kq) {
-}
+Server::Server(std::string _port, std::string password) : _serv(_port), _password(password), _kq(), _data_manager(&_kq) {}
 
 Server::~Server() {}
 
