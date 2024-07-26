@@ -10,9 +10,6 @@
 #define SERVER 0
 #define CLIENT 1
 
-#define CHAN_MEM 0
-#define CHAN_OPR 1
-
 // Error Code
 #define SUCCESS 0
 // NICK Error

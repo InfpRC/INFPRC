@@ -52,6 +52,7 @@ public:
 	int kickChannel(Client *clnt, Executer executer);
 	void sendToClient(Client *clnt, std::string message);
 	void sendToChannel(Channel *chan, std::string message);
+
 	void sendToAll(std::string message);
 
 	bool isChannelOperator(Channel *chan, Client *clnt);
@@ -60,6 +61,8 @@ public:
 	// Client + Channel
 	void addClientToChannel(Client *clnt, Channel *chan, int chanops);
 	void delClientFromChannel(Client *clnt, Channel *chan);
+
+	void sendToClientChannels(Client *clnt, std::string message);
 };
 
 #endif

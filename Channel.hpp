@@ -7,6 +7,8 @@
 #include <vector>
 #include "Client.hpp"
 
+#define CHAN_MEM 0
+#define CHAN_OPR 1
 
 class Channel
 {
@@ -33,13 +35,13 @@ public:
 	void setKey(std::string const &key);
 	void setLimit(size_t limit);
 	void setInviteOnly(bool inviteOnly);
-
 	void setTopic(std::string const &topic, int author_fd);
 
 	void inviteClient(int fd);
-
 	void addClient(int fd, int chanops);
 	void delClient(int fd);
+	void addOperator(int fd);
+	void delOperator(int fd);
 
 	size_t getClientNum();
 	std::string const &getName() const;
