@@ -49,6 +49,7 @@ public:
 	bool getInviteOnly() const;
 	std::map<int, int> &getClients();
 	std::vector<int> getClientsFd();
+	int isOperator(int fd) const;
 	
 	time_t getCreated();
 	time_t getTopicCreated();
