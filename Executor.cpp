@@ -1,7 +1,7 @@
 
-#include "Executer.hpp"
+#include "Executor.hpp"
 
-Executer::Executer(Client *clnt, DataManager *data_manager) 
+Executor::Executor(Client *clnt, DataManager *data_manager) 
 	: _clnt(clnt), _data_manager(data_manager) {
 	std::stringstream ss(clnt->getRecvBuf());
 	clnt->clearRecvBuf();
@@ -19,34 +19,34 @@ Executer::Executer(Client *clnt, DataManager *data_manager)
 	}
 }
 
-Executer::~Executer() {}
+Executor::~Executor() {}
 
-std::string Executer::getCommand() {
+std::string Executor::getCommand() {
 	return _command;
 }
 
-std::string Executer::getParams(int i) {
-	return _params[i];
+std::string Executor::getParams(int i) {
+	if (_params.size() > (size_t)i) {
+		return _params[i];
+	} else {
+		return "";
+	}
 }
 
-int Executer::passCommand(std::string password) {
-	int flag = NON;
+void Executor::passCommand(std::string password) {
 	try {
 		if (_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 462 " + _clnt->getNickname() + " :You may not reregister\r\n");
-		} else if (getParams(0) != password) {
+		} else if (password != "" && getParams(0) != password) {
 			throw std::logic_error(makeSource(SERVER) + " 464 " + _clnt->getNickname() + " :Password incorrect\r\n");
 		}
 		_clnt->setPassed(true);
 	} catch (std::exception &e) {
-		_clnt->setSendBuf(e.what());
-		flag = ONLY;
+		_data_manager->sendToClient(_clnt, e.what());
 	}
-	return flag;
 }
 
-int Executer::nickCommand() {
-	int flag = NON;
+void Executor::nickCommand() {
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
@@ -69,17 +69,16 @@ int Executer::nickCommand() {
 		if (_data_manager->getFdByNickname(nick) != -1) {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
-		_data_manager->sendToAll(makeSource(CLIENT) + " NICK " + nick + "\r\n");
-		flag = ALL;
+		if (!_clnt->getNickname().empty()) {
+			_data_manager->sendToAll(makeSource(CLIENT) + " NICK " + nick + "\r\n");
+		}
 		_clnt->setNickname(getParams(0));
 	} catch (std::exception &e) {
-		_clnt->setSendBuf(e.what());
-		flag = ONLY;
+		_data_manager->sendToClient(_clnt, e.what());
 	}
-	return flag;
 }
 
-int Executer::userCommand() {
+void Executor::userCommand() {
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
@@ -90,57 +89,51 @@ int Executer::userCommand() {
 		}
 		_clnt->setUsername(getParams(0));
 		_clnt->setRealname(getParams(3));
-		_clnt->setSendBuf(makeSource(SERVER) + " 001 " + _clnt->getNickname() + " :Welcome to the Internet Relay Network " + _clnt->getNickname() + "\r\n");
-		_clnt->setSendBuf(makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
-		_clnt->setSendBuf(makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
-		_clnt->setSendBuf(makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
-
+		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 001 " + _clnt->getNickname() + " :Welcome to the Internet Relay Network " + _clnt->getNickname() + "\r\n");
+		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
+		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
+		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
+		_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
 	} catch (std::exception &e) {
-		_clnt->setSendBuf(e.what());
+		_data_manager->sendToClient(_clnt, e.what());
 	}
-	return ONLY;
 }
 
-int Executer::pingCommand() {
+void Executor::pingCommand() {
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
 		} else if (_params.size() != 1) {
 			throw std::logic_error(makeSource(SERVER) + " 409 " + _clnt->getNickname() + " :No origin specified\r\n");
 		}
-		_clnt->setSendBuf(makeSource(SERVER) + " PONG irc.seoul42.com :" + getParams(0) + "\r\n");
+		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " PONG irc.seoul42.com :" + getParams(0) + "\r\n");
 	} catch (std::exception &e) {
-		_clnt->setSendBuf(e.what());
+		_data_manager->sendToClient(_clnt, e.what());
 	}
-	return ONLY;
 }
 
-// int Executer::pongCommand() {
-// 	int flag = NON;
-// 	try {
-// 		if (!_clnt->getPassed()) {
-// 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
-// 		} else if (_params.size() != 1) {
-// 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
-// 		} else if (getParams(0) == "ping pong") {
-// 			_clnt->setPing(true);
-// 		} else {
-// 			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
-// 		}
-// 	} catch (std::exception &e) {
-// 		_clnt->setSendBuf(e.what());
-// 		flag = ONLY;
-// 	}
-// 	return flag;
-// }
+void Executor::pongCommand() {
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.size() != 1) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
+		} else if (getParams(0) == "ping pong") {
+			_clnt->setPing(true);
+		} else {
+			throw std::logic_error(makeSource(SERVER) + " NOTICE " + _clnt->getNickname() + " :Incorrect PONG response received\r\n");
+		}
+	} catch (std::exception &e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
 
-int Executer::quitCommand() {
-	_clnt->setSendBuf(makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
+void Executor::quitCommand() {
+	_data_manager->sendToClient(_clnt, makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
 	_clnt->setPassed(false);
-	return ALL;
 }
 
-int Executer::joinCommand() {
+void Executor::joinCommand() {
 	std::stringstream ss_chan(getParams(0));
 	std::stringstream ss_key(getParams(1));
 	std::vector<std::string> chans;
@@ -195,9 +188,9 @@ int Executer::joinCommand() {
 			std::vector<int> chan_clnts_fd = chan->getClientsFd();
 			for (size_t i = 0; i < chan->getClientNum(); i++) {
 				std::string prefix;
-				// if (chan->isOperator(chan_clnts_fd[i])) {
-				// 	prefix = '@';
-				// }
+				if (_data_manager->isChannelOperator(chan, _data_manager->getClient(chan_clnts_fd[i]))) {
+					prefix = '@';
+				}
 				chan_clnt_list.append(prefix + _data_manager->getNicknameByFd(chan_clnts_fd[i]));
 				if (i != chan->getClientNum() - 1) {
 					chan_clnt_list.append(" ");
@@ -209,12 +202,11 @@ int Executer::joinCommand() {
 			
 		}
 	} catch (const std::exception& e) {
-		_clnt->setSendBuf(e.what());
+		_data_manager->sendToClient(_clnt, e.what());
 	}
-	return ONLY; //only?
 }
 
-int Executer::partCommand() {
+void Executor::partCommand() {
 	std::stringstream ss_chan(getParams(0));
 	std::string reason = getParams(1);
 	std::vector<std::string> chans;
@@ -236,16 +228,15 @@ int Executer::partCommand() {
 				throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chans[i] + " :You're not on that channel\r\n");
 			}
 			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PART " + chans[i] + " :" + reason + "\r\n");
-			chan->delClient(_clnt->getFd());
+			_data_manager->delClientFromChannel(_clnt, chan);
 		}
 	} catch (const std::exception& e) {
-		_clnt->setSendBuf(e.what());
+		_data_manager->sendToClient(_clnt, e.what());
 	}
-	return ALL;
 }
 
 // 명령어 입력 시 채널은 앞에 # 꼭 붙이기
-int Executer::kickCommand() {
+void Executor::kickCommand() {
 	std::string chan_name(getParams(0));
 	Channel *chan = _data_manager->getChannel(chan_name.substr(1));
 	std::stringstream ss_user(getParams(1));
@@ -279,15 +270,38 @@ int Executer::kickCommand() {
 				kick_message.append(" :You are kicked\r\n");
 			}
 			_data_manager->sendToChannel(chan, kick_message);
-			chan->delClient(_data_manager->getFdByNickname(users[i]));
+			_data_manager->delClientFromChannel(_clnt, chan);
 		}
 	} catch(const std::exception& e) {
-		_clnt->setSendBuf(e.what());
+		_data_manager->sendToClient(_clnt, e.what());
 	}
-	return ALL;
 }
 
-std::string Executer::makeSource(bool is_clnt) {
+void Executor::modeCommand() {
+	std::string channel_name = getParams(0);
+	Channel *chan = _data_manager->getChannel(channel_name.substr(1, channel_name.size()));;
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (chan == nullptr) {
+			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + channel_name + " :No such channel");
+		} else if (_params.size() == 1) {
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 324 " + _clnt->getNickname() + " " + channel_name /* + mode */);
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 329 " + _clnt->getNickname() + " " + channel_name /* + getCreate() */);
+			return ;
+		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + channel_name + " :You're not channel operator");
+		}
+		std::string chan_mode;
+		// for (int i = 1; i < params.size(); i++) {
+		// 	if (params[i] == )
+		// }
+	} catch (const std::exception &e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
+
+std::string Executor::makeSource(bool is_clnt) {
 	std::string source;
 
 	if (is_clnt) {
@@ -296,14 +310,4 @@ std::string Executer::makeSource(bool is_clnt) {
 		source = ":irc.seoul42.com";
 	}
 	return source;
-}
-
-std::string Executer::makeTrailing(std::string message) {
-	std::string trailing = ":";
-
-	if (message.find(" ") != std::string::npos) {
-		return trailing + message;
-	} else {
-		return message;
-	}
 }
