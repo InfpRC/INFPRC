@@ -236,7 +236,7 @@ int Executer::partCommand() {
 				throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chans[i] + " :You're not on that channel\r\n");
 			}
 			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PART " + chans[i] + " :" + reason + "\r\n");
-			chan->delClient(_clnt->getFd());
+			_data_manager->delClientFromChannel(_clnt, chan);
 		}
 	} catch (const std::exception& e) {
 		_clnt->setSendBuf(e.what());
@@ -279,7 +279,7 @@ int Executer::kickCommand() {
 				kick_message.append(" :You are kicked\r\n");
 			}
 			_data_manager->sendToChannel(chan, kick_message);
-			chan->delClient(_data_manager->getFdByNickname(users[i]));
+			_data_manager->delClientFromChannel(_clnt, chan);
 		}
 	} catch(const std::exception& e) {
 		_clnt->setSendBuf(e.what());
