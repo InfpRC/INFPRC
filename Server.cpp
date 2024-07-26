@@ -17,15 +17,11 @@ void Server::run() {
 			}
 			if (static_cast<int>(event.ident) == _serv.getFd()) {
 				makeNewConnection();
-			}
-			else if (event.filter == EVFILT_READ) {
+			} else if (event.filter == EVFILT_READ) {
 				eventReadExec(event);
-			}
-			else if (event.filter == EVFILT_WRITE) {
+			} else if (event.filter == EVFILT_WRITE) {
 				eventWriteExec(event);
-			}
-			else if (event.filter == EVFILT_TIMER)
-			{
+			} else if (event.filter == EVFILT_TIMER) {
 				eventTimerExec(event);
 			}
 		}
@@ -101,29 +97,21 @@ void Server::eventTimerExec(struct kevent event)
 
 void Server::parsing(Client *clnt) {
 	while (clnt->getRecvBuf().size()) {
-		std::cout << clnt->getRecvBuf();
+		std::cout << "receive: " << clnt->getRecvBuf();
 		Executor executor(clnt, &_data_manager);
 		if (executor.getCommand() == "PASS") {
 			executor.passCommand(_password);
-		}
-		else if (executor.getCommand() == "NICK") {
+		} else if (executor.getCommand() == "NICK") {
 			executor.nickCommand();
-		}
-		else if (executor.getCommand() == "USER") {
+		} else if (executor.getCommand() == "USER") {
 			executor.userCommand();
-		}
-		else if (executor.getCommand() == "PING") {
+		} else if (executor.getCommand() == "PING") {
 			executor.pingCommand();
-		}
-		// else if (executor.getCommand() == "PONG")
-		// {
-		// 	executor.pongCommand();
-		// }
-		else if (executor.getCommand() == "QUIT")
-		{
+		} else if (executor.getCommand() == "PONG") {
+			executor.pongCommand();
+		} else if (executor.getCommand() == "QUIT") {
 			executor.quitCommand();
-		}
-		else if (executor.getCommand() == "JOIN") {
+		} else if (executor.getCommand() == "JOIN") {
 			executor.joinCommand();
 		} /* else if (executor.getCommand() == "PRIVMSG") {
 			executor.msgCommand();
@@ -136,6 +124,6 @@ void Server::parsing(Client *clnt) {
 		} else if (executor.getCommand() == "") {
 			executor.moreCommand();
 		} */
-		std::cout << clnt->getSendBuf();
+		std::cout << "send: " << clnt->getSendBuf();
 	}
 }
