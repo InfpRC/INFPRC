@@ -59,6 +59,7 @@ public:
 	int quitCommand();
 	int joinCommand();
 	int partCommand();
+	int kickCommand();
 };
 
 #endif
