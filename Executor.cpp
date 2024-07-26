@@ -218,7 +218,7 @@ void Executor::modeCommand() {
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 324 " + _clnt->getNickname() + " " + channel_name /* + mode */);
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 329 " + _clnt->getNickname() + " " + channel_name /* + getCreate() */);
 			return ;
-		} else if (!chan->isOperator(_clnt->getFd())) {
+		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
 			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + channel_name + " :You're not channel operator");
 		}
 		std::string chan_mode;

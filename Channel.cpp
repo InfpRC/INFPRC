@@ -76,10 +76,6 @@ std::vector<int> Channel::getClientsFd() {
 	return fds;
 }
 
-int Channel::isOperator(int fd) const {
-	return _clients.find(fd)->second;
-}
-
 int Channel::isInvited(int fd) {
 	if (_invited.find(fd) != _invited.end()) {
 		return 1;
