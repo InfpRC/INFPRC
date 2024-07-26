@@ -1,6 +1,6 @@
 
-#ifndef EXECUTER_HPP
-#define EXECUTER_HPP
+#ifndef EXECUTOR_HPP
+#define EXECUTOR_HPP
 
 #include <vector>
 #include <sstream>
@@ -35,7 +35,7 @@
 
 class DataManager;
 
-class Executer
+class Executor
 {
 private:
 	Client *_clnt;
@@ -44,22 +44,23 @@ private:
 	DataManager *_data_manager;
 
 	std::string makeSource(bool is_clnt);
-	std::string makeTrailing(std::string message);
 
 public:
-	Executer(Client *clnt, DataManager *data_manager);
-	~Executer();
+	Executor(Client *clnt, DataManager *data_manager);
+	~Executor();
 	std::string getCommand();
 	std::string getParams(int i);
 
-	int passCommand(std::string password);
-	int nickCommand();
-	int userCommand();
-	int pingCommand();
-	int quitCommand();
-	int joinCommand();
-	int partCommand();
-	int kickCommand();
+	void passCommand(std::string password);
+	void nickCommand();
+	void userCommand();
+	void pingCommand();
+	void pongCommand();
+	void quitCommand();
+	void joinCommand();
+	void partCommand();
+	void kickCommand();
+	void modeCommand();
 };
 
 #endif
