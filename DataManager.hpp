@@ -56,6 +56,10 @@ public:
 
 	bool isChannelOperator(Channel *chan, Client *clnt);
 	bool isChannelMember(Channel *chan, Client *clnt);
+
+	// Client + Channel
+	void addClientToChannel(Client *clnt, Channel *chan, int chanops);
+	void delClientFromChannel(Client *clnt, Channel *chan);
 };
 
 #endif
