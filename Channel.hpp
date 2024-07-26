@@ -49,12 +49,16 @@ public:
 	bool getInviteOnly() const;
 	std::map<int, int> &getClients();
 	std::vector<int> getClientsFd();
-	
+	std::string getModeList();
+
+
 	time_t getCreated();
 	time_t getTopicCreated();
 	int getTopicAuthor();
 
 	int isInvited(int fd);
+	
+
 };
 
 #endif

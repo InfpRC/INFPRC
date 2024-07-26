@@ -37,6 +37,7 @@ void Channel::addClient(int fd, int chanops) {
 }
 
 void Channel::delClient(int fd) {
+
 	_clients.erase(fd);
 }
 
@@ -76,9 +77,46 @@ std::vector<int> Channel::getClientsFd() {
 	return fds;
 }
 
+time_t Channel::getCreated() {
+	return _created;
+}
+
+time_t Channel::getTopicCreated() {
+	return _topic_created;
+}
+
+int Channel::getTopicAuthor() {
+	return _topic_author;
+}
+
 int Channel::isInvited(int fd) {
 	if (_invited.find(fd) != _invited.end()) {
 		return 1;
 	}
 	return 0;
+}
+
+std::string Channel::getModeList() {
+	std::string mode_list;
+	if (_inviteOnly) {
+		mode_list.append("i");
+	}
+	if (_topic.empty()) {
+		mode_list.append("t");
+	}
+	if (_limit >= 0) {
+		mode_list.append("l");
+	}
+	if (!_key.empty()) {
+		mode_list.append("k");
+	}
+	if (_limit >= 0) {
+		mode_list.append(" ");
+		mode_list.append(std::to_string(_limit));
+	}
+	if (!_key.empty()) {
+		mode_list.append(" ");
+		mode_list.append(_key);
+	}
+	return mode_list;
 }
