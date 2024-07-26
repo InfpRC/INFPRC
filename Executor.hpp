@@ -58,6 +58,8 @@ public:
 	void pongCommand();
 	void quitCommand();
 	void joinCommand();
+	void partCommand();
+	void kickCommand();
 	void modeCommand();
 };
 

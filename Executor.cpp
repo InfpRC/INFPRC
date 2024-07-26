@@ -26,7 +26,7 @@ std::string Executor::getCommand() {
 }
 
 std::string Executor::getParams(int i) {
-	if (_params.size() < (size_t)i) {
+	if (_params.size() > (size_t)i) {
 		return _params[i];
 	} else {
 		return "";
@@ -188,7 +188,7 @@ void Executor::joinCommand() {
 			std::vector<int> chan_clnts_fd = chan->getClientsFd();
 			for (size_t i = 0; i < chan->getClientNum(); i++) {
 				std::string prefix;
-				if (chan->isOperator(chan_clnts_fd[i])) {
+				if (_data_manager->isChannelOperator(chan, _data_manager->getClient(chan_clnts_fd[i]))) {
 					prefix = '@';
 				}
 				chan_clnt_list.append(prefix + _data_manager->getNicknameByFd(chan_clnts_fd[i]));
@@ -202,6 +202,77 @@ void Executor::joinCommand() {
 			
 		}
 	} catch (const std::exception& e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
+
+void Executor::partCommand() {
+	std::stringstream ss_chan(getParams(0));
+	std::string reason = getParams(1);
+	std::vector<std::string> chans;
+	std::string token;
+	while (std::getline(ss_chan, token, ',')) {
+		chans.push_back(token);
+	}
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.empty()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PART :Not enough parameters\r\n");
+		}
+		for (size_t i = 0; i < chans.size(); i++) {
+			Channel *chan = _data_manager->getChannel(chans[i].substr(1));
+			if (chan == nullptr) {
+				throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + chans[i] + " :No such channel\r\n");
+			} else if (!_data_manager->isChannelMember(chan, _clnt)) {
+				throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chans[i] + " :You're not on that channel\r\n");
+			}
+			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PART " + chans[i] + " :" + reason + "\r\n");
+			chan->delClient(_clnt->getFd());
+		}
+	} catch (const std::exception& e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
+
+// 명령어 입력 시 채널은 앞에 # 꼭 붙이기
+void Executor::kickCommand() {
+	std::string chan_name(getParams(0));
+	Channel *chan = _data_manager->getChannel(chan_name.substr(1));
+	std::stringstream ss_user(getParams(1));
+	std::vector<std::string> users;
+	std::string comment(getParams(2));
+	std::string token;
+	while (std::getline(ss_user, token, ',')) {
+		users.push_back(token);
+	}
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.size() < 2) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " KICK :Not enough parameters\r\n");
+		} else if (!chan) {
+			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + chan_name + " :No such channel\r\n");
+		} else if (!_data_manager->isChannelMember(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chan_name + " :You're not on that channel\r\n");
+		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + chan_name + " :You're not channel operator\r\n");
+		}
+		for (size_t i = 0; i < users.size(); i++) {
+			if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(users[i])))) {
+				throw std::logic_error(makeSource(SERVER) + " 441 " + _clnt->getNickname() + " " + chan_name + " :They aren't on that channel\r\n");
+			}
+			std::string kick_message = makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " ";
+			if (!comment.empty()) {
+				kick_message.append(comment);
+				kick_message.append("\r\n");
+			} else {
+				kick_message.append(" :You are kicked\r\n");
+			}
+			_data_manager->sendToChannel(chan, kick_message);
+			chan->delClient(_data_manager->getFdByNickname(users[i]));
+		}
+	} catch(const std::exception& e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
 }

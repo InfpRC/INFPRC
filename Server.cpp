@@ -78,15 +78,12 @@ void Server::eventTimerExec(struct kevent event)
 	Client *clnt = _data_manager.getClient(event.ident);
 	if (clnt != NULL)
 	{
-		if (clnt->getPing())
-		{
+		if (clnt->getPing()) {
 			clnt->setSendBuf(":irc.seoul42.com PING :ping pong\r\n");
 			clnt->setPing(false);
 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
-		}
-		else
-		{
+		} else {
 			clnt->setSendBuf(":irc.seoul42.com NOTICE " + clnt->getNickname() + " :Incorrect PONG response received\r\n");
 			clnt->setPassed(false);
 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
@@ -113,17 +110,17 @@ void Server::parsing(Client *clnt) {
 			executor.quitCommand();
 		} else if (executor.getCommand() == "JOIN") {
 			executor.joinCommand();
-		} /* else if (executor.getCommand() == "PRIVMSG") {
-			executor.msgCommand();
 		} else if (executor.getCommand() == "PART") {
 			executor.partCommand();
 		} else if (executor.getCommand() == "KICK") {
 			executor.kickCommand();
+		} /* else if (executor.getCommand() == "PRIVMSG") {
+			executor.msgCommand();
 		} else if (executor.getCommand() == "MODE") {
 			executor.modeCommand();
 		} else if (executor.getCommand() == "") {
 			executor.moreCommand();
 		} */
-		std::cout << "send: " << clnt->getSendBuf();
+		std::cout << clnt->getSendBuf();
 	}
 }
