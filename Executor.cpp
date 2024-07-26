@@ -216,7 +216,7 @@ void Executor::modeCommand() {
 			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + channel_name + " :No such channel");
 		} else if (_params.size() == 1) {
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 324 " + _clnt->getNickname() + " " + channel_name /* + mode */);
-			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 329 " + _clnt->getNickname() + " " + channel_name /* + createTime */);
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 329 " + _clnt->getNickname() + " " + channel_name /* + getCreate() */);
 			return ;
 		} else if (!chan->isOperator(_clnt->getFd())) {
 			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + channel_name + " :You're not channel operator");

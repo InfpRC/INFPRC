@@ -34,7 +34,7 @@ void Server::makeNewConnection() {
 	Client *clnt = new Client(clnt_sock);
 	_data_manager.addClient(clnt);
 	_kq.addEvent(clnt_sock, EVFILT_READ);
-	// _kq.setTimer(clnt_sock);
+	_kq.setTimer(clnt_sock);
 	std::cout << "connected client: " << clnt_sock << std::endl;
 }
 
