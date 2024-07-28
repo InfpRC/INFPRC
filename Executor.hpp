@@ -49,8 +49,8 @@ public:
 	std::string getParams(int i);
 
 	void passCommand(std::string password);
-	void nickCommand();
-	void userCommand();
+	void nickCommand(std::string create_time);
+	void userCommand(std::string create_time);
 	void pingCommand();
 	void pongCommand();
 	void quitCommand();
