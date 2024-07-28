@@ -66,13 +66,21 @@ void Executor::nickCommand() {
 				throw std::logic_error(makeSource(SERVER) + " 432 " + _clnt->getNickname() + " :Erroneus nickname\r\n");
 			}
 		}
-		if (_data_manager->getFdByNickname(nick) != -1) {
+		if (_data_manager->getFdByNickname(nick) != -1 && _data_manager->getFdByNickname(nick) != _clnt->getFd()) {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
-		if (!_clnt->getNickname().empty()) {
-			_data_manager->sendToAll(makeSource(CLIENT) + " NICK " + nick + "\r\n");
+		if (nick != _clnt->getNickname()) {
+			_data_manager->sendToClient(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
+			_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
+			_clnt->setNickname(getParams(0));
+			if (!_clnt->getUsername().empty()) {
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 001 " + _clnt->getNickname() + " :Welcome to the Internet Relay Network " + _clnt->getNickname() + "\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
+				_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");	
+			}
 		}
-		_clnt->setNickname(getParams(0));
 	} catch (std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
@@ -89,11 +97,13 @@ void Executor::userCommand() {
 		}
 		_clnt->setUsername(getParams(0));
 		_clnt->setRealname(getParams(3));
-		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 001 " + _clnt->getNickname() + " :Welcome to the Internet Relay Network " + _clnt->getNickname() + "\r\n");
-		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
-		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
-		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
-		_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
+		if (_clnt->getNickname() != "*") {
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 001 " + _clnt->getNickname() + " :Welcome to the Internet Relay Network " + _clnt->getNickname() + "\r\n");
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created Mon Jul 9 2024 at 10:00:00 GMT\r\n");
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0 o o\r\n");
+			_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
+		}
 	} catch (std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
