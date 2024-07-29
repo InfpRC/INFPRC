@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <ctime>
 
 #include "Socket.hpp"
 #include "Client.hpp"
@@ -21,8 +22,8 @@ private:
 	Socket _serv;
 	std::string _password;
 	Kqueue _kq;
-
 	DataManager _data_manager;
+	time_t _created;
 
 public:
 	Server(std::string port, std::string password);
@@ -45,6 +46,8 @@ public:
 
 	void sendToAll(std::string _message);
 	void sendToClient(Client *sender, std::string const &receiver, std::string message);
+
+	std::string getCreated();
 };
 
 #endif

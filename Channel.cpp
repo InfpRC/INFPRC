@@ -84,12 +84,16 @@ std::vector<int> Channel::getClientsFd() {
 	return fds;
 }
 
-time_t Channel::getCreated() {
-	return _created;
+std::string Channel::getCreated() {
+	std::stringstream ss;
+	ss << _created;
+	return ss.str();
 }
 
-time_t Channel::getTopicCreated() {
-	return _topic_created;
+std::string Channel::getTopicCreated() {
+	std::stringstream ss;
+	ss << _topic_created;
+	return ss.str();
 }
 
 int Channel::getTopicAuthor() {

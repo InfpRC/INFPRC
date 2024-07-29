@@ -1,7 +1,7 @@
 
 #include "Server.hpp"
 
-Server::Server(std::string _port, std::string password) : _serv(_port), _password(password), _kq(), _data_manager(&_kq) {}
+Server::Server(std::string _port, std::string password) : _serv(_port), _password(password), _kq(), _data_manager(&_kq), _created(time(NULL)) {}
 
 Server::~Server() {}
 
@@ -99,9 +99,9 @@ void Server::parsing(Client *clnt) {
 		if (executor.getCommand() == "PASS") {
 			executor.passCommand(_password);
 		} else if (executor.getCommand() == "NICK") {
-			executor.nickCommand();
+			executor.nickCommand(getCreated());
 		} else if (executor.getCommand() == "USER") {
-			executor.userCommand();
+			executor.userCommand(getCreated());
 		} else if (executor.getCommand() == "PING") {
 			executor.pingCommand();
 		} else if (executor.getCommand() == "PONG") {
@@ -123,4 +123,16 @@ void Server::parsing(Client *clnt) {
 		} */
 		std::cout << clnt->getSendBuf();
 	}
+}
+
+std::string Server::getCreated() {
+    // tm 구조체 포인터 생성, time_t를 변환하여 UTC 시간으로 설정
+    struct tm* tm_info = std::localtime(&_created);
+    
+    // 날짜 및 시간 포맷 설정
+    char buffer[80];
+    std::strftime(buffer, 80, "%a %b %d %Y at %H:%M:%S KST", tm_info);
+    
+    // 결과를 std::string으로 반환
+    return std::string(buffer);
 }

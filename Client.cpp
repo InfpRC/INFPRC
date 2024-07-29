@@ -1,7 +1,7 @@
 
 #include "Client.hpp"
 
-Client::Client(int fd) : _fd(fd), _is_passed(false) {
+Client::Client(int fd) : _fd(fd), _is_passed(false), _is_ping(true), _nickname("*") {
 	struct sockaddr_in client_addr;
 	socklen_t addr_len = sizeof(client_addr);
 

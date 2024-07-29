@@ -5,6 +5,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <sstream>
 #include "Client.hpp"
 
 #define CHAN_MEM 0
@@ -54,8 +55,8 @@ public:
 	std::string getModeList();
 
 
-	time_t getCreated();
-	time_t getTopicCreated();
+	std::string getCreated();
+	std::string getTopicCreated();
 	int getTopicAuthor();
 
 	int isInvited(int fd);
