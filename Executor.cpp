@@ -205,7 +205,7 @@ void Executor::joinCommand() {
 						chan_clnt_list.append(_data_manager->getNicknameByFd(chan_clnts_fd[client_number]));
 					}
 					client_number++;
-					if (chan_clnt_list.size() > 500 || client_number == chan->getClientNum()) {
+					if (chan_clnt_list.size() >= 500 || client_number == chan->getClientNum()) {
 						break ;
 					}
 					chan_clnt_list.append(" ");
