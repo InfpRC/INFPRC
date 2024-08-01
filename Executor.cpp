@@ -269,7 +269,9 @@ void Executor::kickCommand() {
 			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + chan_name + " :You're not channel operator\r\n");
 		}
 		for (size_t i = 0; i < users.size(); i++) {
-			if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(users[i])))) {
+			if (_data_manager->getFdByNickname(users[i]) == -1 || !_data_manager->getClient(_data_manager->getFdByNickname(users[i]))) {
+				throw std::logic_error(makeSource(SERVER) + " 401 " + _clnt->getNickname() + " " + users[i] + " :No such nick\r\n");
+			} else if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(users[i])))) {
 				throw std::logic_error(makeSource(SERVER) + " 441 " + _clnt->getNickname() + " " + chan_name + " :They aren't on that channel\r\n");
 			}
 			std::string kick_message = makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " ";
