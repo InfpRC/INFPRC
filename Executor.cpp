@@ -282,7 +282,7 @@ void Executor::kickCommand() {
 				kick_message.append(" :You are kicked\r\n");
 			}
 			_data_manager->sendToChannel(chan, kick_message);
-			_data_manager->delClientFromChannel(_clnt, chan);
+			_data_manager->delClientFromChannel(_data_manager->getClient(_data_manager->getFdByNickname(users[i])), chan);
 		}
 	} catch(const std::exception& e) {
 		_data_manager->sendToClient(_clnt, e.what());
