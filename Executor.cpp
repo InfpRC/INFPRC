@@ -277,10 +277,8 @@ void Executor::kickCommand() {
 			std::string kick_message = makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " ";
 			if (!comment.empty()) {
 				kick_message.append(comment);
-				kick_message.append("\r\n");
-			} else {
-				kick_message.append(" :You are kicked\r\n");
 			}
+			kick_message.append("\r\n");
 			_data_manager->sendToChannel(chan, kick_message);
 			_data_manager->delClientFromChannel(_data_manager->getClient(_data_manager->getFdByNickname(users[i])), chan);
 		}
