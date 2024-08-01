@@ -54,7 +54,7 @@ void Executor::nickCommand(std::string create_time) {
 			throw std::logic_error(makeSource(SERVER) + " 431 " + _clnt->getNickname() + " :No nickname given\r\n");
 		}
 		std::string nick = getParams(0);
-		if (nick.size() < 1 || nick.size() > 9) {
+		if (nick.size() < 1 || nick.size() > 16) {
 			throw std::logic_error(makeSource(SERVER) + " 432 " + _clnt->getNickname() + " :Erroneus nickname\r\n");
 		}
 		std::string not_start = "$:#~&%+0123456789";
@@ -205,7 +205,7 @@ void Executor::joinCommand() {
 						chan_clnt_list.append(_data_manager->getNicknameByFd(chan_clnts_fd[client_number]));
 					}
 					client_number++;
-					if (chan_clnt_list.size() >= 500 || client_number == chan->getClientNum()) {
+					if (chan_clnt_list.size() > 490 || client_number == chan->getClientNum()) {
 						break ;
 					}
 					chan_clnt_list.append(" ");
