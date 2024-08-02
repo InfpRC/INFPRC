@@ -96,29 +96,30 @@ void Server::parsing(Client *clnt) {
 	while (clnt->getRecvBuf().size()) {
 		std::cout << "receive: " << clnt->getRecvBuf();
 		Executor executor(clnt, &_data_manager);
-		if (executor.getCommand() == "PASS") {
+		std::string command = executor.getCommand();
+		if (command == "PASS") {
 			executor.passCommand(_password);
-		} else if (executor.getCommand() == "NICK") {
+		} else if (command == "NICK") {
 			executor.nickCommand(getCreated());
-		} else if (executor.getCommand() == "USER") {
+		} else if (command == "USER") {
 			executor.userCommand(getCreated());
-		} else if (executor.getCommand() == "PING") {
+		} else if (command == "PING") {
 			executor.pingCommand();
-		} else if (executor.getCommand() == "PONG") {
+		} else if (command == "PONG") {
 			executor.pongCommand();
-		} else if (executor.getCommand() == "QUIT") {
+		} else if (command == "QUIT") {
 			executor.quitCommand();
-		} else if (executor.getCommand() == "JOIN") {
+		} else if (command == "JOIN") {
 			executor.joinCommand();
-		} else if (executor.getCommand() == "PART") {
+		} else if (command == "PART") {
 			executor.partCommand();
-		} else if (executor.getCommand() == "KICK") {
+		} else if (command == "KICK") {
 			executor.kickCommand();
-		} /* else if (executor.getCommand() == "PRIVMSG") {
-			executor.msgCommand();
-		} else if (executor.getCommand() == "MODE") {
+		} else if (command == "PRIVMSG") {
+			executor.privmsgCommand();
+		} /* else if (command == "MODE") {
 			executor.modeCommand();
-		} else if (executor.getCommand() == "") {
+		} else if (command == "") {
 			executor.moreCommand();
 		} */
 		std::cout << clnt->getSendBuf();
