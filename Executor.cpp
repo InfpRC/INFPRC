@@ -54,7 +54,7 @@ void Executor::nickCommand(std::string create_time) {
 			throw std::logic_error(makeSource(SERVER) + " 431 " + _clnt->getNickname() + " :No nickname given\r\n");
 		}
 		std::string nick = getParams(0);
-		if (nick.size() < 1 || nick.size() > 9) {
+		if (nick.size() < 1 || nick.size() > 16) {
 			throw std::logic_error(makeSource(SERVER) + " 432 " + _clnt->getNickname() + " :Erroneus nickname\r\n");
 		}
 		std::string not_start = "$:#~&%+0123456789";
@@ -201,19 +201,24 @@ void Executor::joinCommand() {
 			}
 			
 			// RPL_NAMREPLY (353): 채널에 현재 참여하고 있는 클라이언트들의 리스트를 전송합니다.
-			std::string chan_clnt_list = makeSource(SERVER) + " 353 " + _clnt->getNickname() + " = " + chans[i] + " :";
-			std::vector<int> chan_clnts_fd = chan->getClientsFd();
-			for (size_t i = 0; i < chan->getClientNum(); i++) {
-				std::string prefix;
-				if (_data_manager->isChannelOperator(chan, _data_manager->getClient(chan_clnts_fd[i]))) {
-					prefix = '@';
-				}
-				chan_clnt_list.append(prefix + _data_manager->getNicknameByFd(chan_clnts_fd[i]));
-				if (i != chan->getClientNum() - 1) {
+			size_t client_number = 0;
+			while (client_number < chan->getClientNum()) {
+				std::string chan_clnt_list = makeSource(SERVER) + " 353 " + _clnt->getNickname() + " = " + chans[i] + " :";
+				std::vector<int> chan_clnts_fd = chan->getClientsFd();
+				while (true) {
+					if (_data_manager->isChannelOperator(chan, _data_manager->getClient(chan_clnts_fd[client_number]))) {
+						chan_clnt_list.append("@" + _data_manager->getNicknameByFd(chan_clnts_fd[client_number]));
+					} else {
+						chan_clnt_list.append(_data_manager->getNicknameByFd(chan_clnts_fd[client_number]));
+					}
+					client_number++;
+					if (chan_clnt_list.size() > 490 || client_number == chan->getClientNum()) {
+						break ;
+					}
 					chan_clnt_list.append(" ");
 				}
+				_data_manager->sendToClient(_clnt, chan_clnt_list + "\r\n");
 			}
-			_data_manager->sendToClient(_clnt, chan_clnt_list + "\r\n");
 			// RPL_ENDOFNAMES (366): 클라이언트 리스트의 끝을 알리는 메시지입니다.
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 366 " + _clnt->getNickname() + " " + chans[i] + " :End of /NAMES list.\r\n");
 			
