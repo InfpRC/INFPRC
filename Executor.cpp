@@ -294,6 +294,9 @@ void Executor::kickCommand() {
 
 void Executor::modeCommand() {
 	std::string channel_name = getParams(0);
+	if (channel_name[0] != '#') {
+		return ;
+	}
 	Channel *chan = _data_manager->getChannel(channel_name.substr(1, channel_name.size()));;
 	try {
 		if (!_clnt->getPassed()) {
@@ -307,13 +310,88 @@ void Executor::modeCommand() {
 		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
 			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + channel_name + " :You're not channel operator");
 		}
-		std::string chan_mode;
-		// for (int i = 1; i < params.size(); i++) {
-		// 	if (params[i] == )
-		// }
+		changeMode(chan);
 	} catch (const std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
+}
+
+void Executor::changeMode(Channel *chan) {
+	std::string option = getParams(1);
+	std::string success_option;
+	std::vector<std::string> param;
+	int index = 2;
+	bool flag;
+	for (size_t i = 0; i < option.size(); i++) {
+		if (option[i] == '+') {
+			success_option.append("+");
+			flag = true;
+		} else if (option[i] == '-') {
+			success_option.append("-");
+			flag = false;
+		} else {
+			if (option[i] == 'i') {
+				if ((flag == true && !chan->getInviteOnly()) || (flag == false && chan->getInviteOnly())) {
+					chan->setInviteOnly(flag);
+					success_option.append("i");
+				}
+			} else if (option[i] == 't') {
+				//modeT(chan);
+			} else if (option[i] == 'l') {
+				if (flag == true) {
+					std::string size_string = getParams(index++);
+					int size = strtod(size_string.c_str(), NULL);
+					if (size > 0) {
+						chan->setLimit(size);
+						success_option.append("l");
+						param.push_back(size_string);
+					}
+				} else {
+					if (chan->getLimit() > -1) {
+						chan->setLimit(-1);
+						success_option.append("l");
+					}
+				}
+			} else if (option[i] == 'k') {
+				std::string key = getParams(index++);
+				if (key != "") {
+					continue ;
+				} else if (flag == true && chan->getKey().empty()) {
+					chan->setKey(key);
+					success_option.append("k");
+					param.push_back(key);
+				} else if (flag == false && !chan->getKey().empty()) {
+					chan->setKey(std::string());
+					success_option.append("k");
+					param.push_back("*");
+				}
+			} else if (option[i] == 'o') {
+				std::string name = getParams(index++);
+				if (name == "") {
+					continue ;
+				} else if (_data_manager->getFdByNickname(name) == -1) {
+					throw std::logic_error(makeSource(SERVER) + " 401 " + _clnt->getNickname() + " " + name + " :No such nick/channel\r\n");
+				} else if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(name)))) {
+					throw std::logic_error(makeSource(SERVER) + " 441 " + _clnt->getNickname() + " " + name + " #" + chan->getName() + " :They aren't on that channel\r\n");
+				} else {
+					if (flag == true) {
+						chan->addOperator(_data_manager->getFdByNickname(name));
+					} else {
+						chan->delOperator(_data_manager->getFdByNickname(name));
+					}
+					success_option.append("o");
+					param.push_back(name);
+				}
+			} else {
+				throw std::logic_error(makeSource(SERVER) + " 472 " + _clnt->getNickname() + " " + option[i] + " :is an unknown mode char to me\r\n");
+			}
+		}
+	}
+	std::string send_message = makeSource(CLIENT) + " MODE #" + chan->getName() + " " + success_option;
+	for (size_t i = 0; i < param.size(); i++) {
+		send_message.append(" " + param[i]);
+	}
+	_data_manager->sendToChannel(chan, send_message + "\r\n");
 }
 
 std::string Executor::makeSource(bool is_clnt) {
