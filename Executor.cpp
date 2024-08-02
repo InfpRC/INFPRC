@@ -139,7 +139,14 @@ void Executor::pongCommand() {
 }
 
 void Executor::quitCommand() {
-	_data_manager->sendToClient(_clnt, makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
+	_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
+	std::set<std::string> chans = _clnt->getJoinedChannels();
+	for (std::set<std::string>::iterator it = chans.begin(); it != chans.end(); ++it) {
+		Channel *chan = _data_manager->getChannel(*it);
+		if (chan != nullptr) {
+			_data_manager->delClientFromChannel(_clnt, chan);
+		}
+	}
 	_clnt->setPassed(false);
 }
 
@@ -250,13 +257,11 @@ void Executor::partCommand() {
 	}
 }
 
-// 명령어 입력 시 채널은 앞에 # 꼭 붙이기
 void Executor::kickCommand() {
 	std::string chan_name(getParams(0));
 	Channel *chan = _data_manager->getChannel(chan_name.substr(1));
 	std::stringstream ss_user(getParams(1));
 	std::vector<std::string> users;
-	std::string comment(getParams(2));
 	std::string token;
 	while (std::getline(ss_user, token, ',')) {
 		users.push_back(token);
@@ -274,18 +279,13 @@ void Executor::kickCommand() {
 			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + chan_name + " :You're not channel operator\r\n");
 		}
 		for (size_t i = 0; i < users.size(); i++) {
-			if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(users[i])))) {
+			if (_data_manager->getFdByNickname(users[i]) == -1 || !_data_manager->getClient(_data_manager->getFdByNickname(users[i]))) {
+				throw std::logic_error(makeSource(SERVER) + " 401 " + _clnt->getNickname() + " " + users[i] + " :No such nick\r\n");
+			} else if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(users[i])))) {
 				throw std::logic_error(makeSource(SERVER) + " 441 " + _clnt->getNickname() + " " + chan_name + " :They aren't on that channel\r\n");
 			}
-			std::string kick_message = makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " ";
-			if (!comment.empty()) {
-				kick_message.append(comment);
-				kick_message.append("\r\n");
-			} else {
-				kick_message.append(" :You are kicked\r\n");
-			}
-			_data_manager->sendToChannel(chan, kick_message);
-			_data_manager->delClientFromChannel(_clnt, chan);
+			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " " + getParams(2) + "\r\n");
+			_data_manager->delClientFromChannel(_data_manager->getClient(_data_manager->getFdByNickname(users[i])), chan);
 		}
 	} catch(const std::exception& e) {
 		_data_manager->sendToClient(_clnt, e.what());
