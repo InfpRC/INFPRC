@@ -70,7 +70,6 @@ void Executor::nickCommand(std::string create_time) {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
 		if (nick != _clnt->getNickname()) {
-			_data_manager->sendToClient(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
 			_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
 			_clnt->setNickname(getParams(0));
 			if (!_clnt->getUsername().empty()) {
