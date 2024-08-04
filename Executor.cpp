@@ -70,15 +70,16 @@ void Executor::nickCommand(std::string create_time) {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
 		if (nick != _clnt->getNickname()) {
-			_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
-			_clnt->setNickname(getParams(0));
-			if (!_clnt->getUsername().empty()) {
-				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 001 " + _clnt->getNickname() + " :Welcome to the Internet Relay Network " + _clnt->getNickname() + "\r\n");
-				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
-				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created " + create_time + "\r\n");
-				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0\r\n");
-				_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");	
+			if (!_clnt->getUsername().empty() && _clnt->getNickname().empty()) {
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + nick + " :Your host is irc.seoul42.com\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + nick + " :This server was created " + create_time + "\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + nick + " :irc.seoul42.com 1.0\r\n");
+				_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
+			} else if (!_clnt->getUsername().empty()) {
+				_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
 			}
+			_clnt->setNickname(nick);
 		}
 	} catch (std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
@@ -303,7 +304,7 @@ void Executor::modeCommand() {
 		} else if (chan == nullptr) {
 			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + channel_name + " :No such channel");
 		} else if (_params.size() == 1) {
-			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 324 " + _clnt->getNickname() + " " + channel_name + " " + chan->getModeList() + "\r\n");
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 324 " + _clnt->getNickname() + " " + channel_name + " +" + chan->getModeList() + "\r\n");
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 329 " + _clnt->getNickname() + " " + channel_name + " " + chan->getCreated() + "\r\n");
 			return ;
 		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
@@ -353,7 +354,7 @@ void Executor::changeMode(Channel *chan) {
 				}
 			} else if (option[i] == 'k') {
 				std::string key = getParams(index++);
-				if (key != "") {
+				if (key == "") {
 					continue ;
 				} else if (flag == true && chan->getKey().empty()) {
 					chan->setKey(key);
@@ -390,7 +391,9 @@ void Executor::changeMode(Channel *chan) {
 	for (size_t i = 0; i < param.size(); i++) {
 		send_message.append(" " + param[i]);
 	}
-	_data_manager->sendToChannel(chan, send_message + "\r\n");
+	if (success_option != "+" && success_option != "-" && success_option != "+-") {
+		_data_manager->sendToChannel(chan, send_message + "\r\n");
+	}
 }
 
 std::string Executor::makeSource(bool is_clnt) {
