@@ -316,6 +316,42 @@ void Executor::modeCommand() {
 	}
 }
 
+void Executor::privmsgCommand() {
+	std::string receiver = getParams(0);
+	std::string message = getParams(1);
+	int is_chan = false;
+	if (receiver[0] == '#') {
+		is_chan = true;
+	}
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.size() < 2) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PRIVMSG :Not enough parameters\r\n");
+		} else if (is_chan) {
+			Channel *chan = _data_manager->getChannel(receiver.substr(1));
+			if (!chan) {
+				throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + receiver + " :No such channel\r\n");
+			} else if (!_data_manager->isChannelMember(chan, _clnt)) {
+				// 상용서버 메시지 체크
+				throw std::logic_error(makeSource(SERVER) + " 404 " + _clnt->getNickname() + " " + receiver + " :You cannot send external messages to this channel whilst the +n (noextmsg) mode is set.\r\n");
+			} if (!message.empty()) {
+				// 나를 제외한 채널에 전송하는 메서드로 수정 필요 !!
+				_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PRIVMSG " + receiver + " :" + message + "\r\n");
+			}
+		} else if (!is_chan) {
+			if (_data_manager->getFdByNickname(receiver) == -1 || !_data_manager->getClient(_data_manager->getFdByNickname(receiver))) {
+				throw std::logic_error(makeSource(SERVER) + " 401 " + _clnt->getNickname() + " " + receiver + " :No such nick\r\n");
+			} if (!message.empty()) {
+				_data_manager->sendToClient(_data_manager->getClient(_data_manager->getFdByNickname(receiver)), 
+				makeSource(CLIENT) + " PRIVMSG " + _clnt->getNickname() + " " + message + "\r\n");
+			}
+		}
+	} catch(const std::exception& e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
+
 std::string Executor::makeSource(bool is_clnt) {
 	std::string source;
 
