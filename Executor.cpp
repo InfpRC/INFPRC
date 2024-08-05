@@ -392,7 +392,7 @@ void Executor::changeMode(Channel *chan) {
 		send_message.append(" " + param[i]);
 	}
 	if (success_option != "+" && success_option != "-" && success_option != "+-") {
-		_data_manager->sendToChannel(chan, send_message + "\r\n");
+		_data_manager->sendToChannel(chan, send_message + "\r\n", -1);
 	}
 }
 
