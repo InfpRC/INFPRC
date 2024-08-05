@@ -115,7 +115,7 @@ void Server::parsing(Client *clnt) {
 			executor.partCommand();
 		} else if (command == "KICK") {
 			executor.kickCommand();
-		} else if (executor.getCommand() == "MODE") {
+		} else if (command == "MODE") {
 			executor.modeCommand();
 		} else if (command == "PRIVMSG") {
 			executor.privmsgCommand();
