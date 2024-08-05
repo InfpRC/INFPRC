@@ -190,7 +190,7 @@ void Executor::joinCommand() {
 			_data_manager->addClientToChannel(_clnt, chan, role);
 			/* join reply message */
 			// sendToChannel 사용!
-			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " JOIN :" + chans[i] + "\r\n");
+			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " JOIN :" + chans[i] + "\r\n", _clnt->getFd());
 			
 			// join한 클라이언트에게 전송
 			if (!chan->getTopic().empty()) {
@@ -249,7 +249,7 @@ void Executor::partCommand() {
 			} else if (!_data_manager->isChannelMember(chan, _clnt)) {
 				throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chans[i] + " :You're not on that channel\r\n");
 			}
-			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PART " + chans[i] + " :" + reason + "\r\n");
+			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PART " + chans[i] + " :" + reason + "\r\n", _clnt->getFd());
 			_data_manager->delClientFromChannel(_clnt, chan);
 		}
 	} catch (const std::exception& e) {
@@ -284,7 +284,7 @@ void Executor::kickCommand() {
 			} else if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(users[i])))) {
 				throw std::logic_error(makeSource(SERVER) + " 441 " + _clnt->getNickname() + " " + chan_name + " :They aren't on that channel\r\n");
 			}
-			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " " + getParams(2) + "\r\n");
+			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " " + getParams(2) + "\r\n", _clnt->getFd());
 			_data_manager->delClientFromChannel(_data_manager->getClient(_data_manager->getFdByNickname(users[i])), chan);
 		}
 	} catch(const std::exception& e) {
@@ -333,11 +333,9 @@ void Executor::privmsgCommand() {
 			if (!chan) {
 				throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + receiver + " :No such channel\r\n");
 			} else if (!_data_manager->isChannelMember(chan, _clnt)) {
-				// 상용서버 메시지 체크
-				throw std::logic_error(makeSource(SERVER) + " 404 " + _clnt->getNickname() + " " + receiver + " :You cannot send external messages to this channel whilst the +n (noextmsg) mode is set.\r\n");
+				throw std::logic_error(makeSource(SERVER) + " 404 " + _clnt->getNickname() + " " + receiver + " :Cannot send to nick/channel\r\n");
 			} if (!message.empty()) {
-				// 나를 제외한 채널에 전송하는 메서드로 수정 필요 !!
-				_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PRIVMSG " + receiver + " :" + message + "\r\n");
+				_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PRIVMSG " + receiver + " :" + message + "\r\n", _clnt->getFd());
 			}
 		} else if (!is_chan) {
 			if (_data_manager->getFdByNickname(receiver) == -1 || !_data_manager->getClient(_data_manager->getFdByNickname(receiver))) {

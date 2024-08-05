@@ -41,9 +41,6 @@ public:
 	// JOIN
 	void joinChannel(Client *clnt, Executor executor);
 
-	// PRIVMSG
-	void sendToChannel(Client *sender, std::string const &channel, std::string message);
-
 	void sendToAll(std::string _message);
 	void sendToClient(Client *sender, std::string const &receiver, std::string message);
 
