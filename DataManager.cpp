@@ -99,9 +99,13 @@ void DataManager::sendToClient(Client *clnt, std::string message) {
 	_kq->addEvent(clnt->getFd(), EVFILT_WRITE);
 }
 
-void DataManager::sendToChannel(Channel *chan, std::string message) {
+void DataManager::sendToChannel(Channel *chan, std::string message, int except)
+{
 	std::vector<int> fds = chan->getClientsFd();
 	for (size_t i = 0; i < fds.size(); i++) {
+		if (except > 0 && fds[i] == except) {
+			continue;
+		}
 		sendToClient(getClient(fds[i]), message);
 	}
 }
@@ -134,26 +138,6 @@ int DataManager::inviteChannel(Client *clnt, Executor executor) {
 	chan->inviteClient(fd);
 	return SUCCESS;
 }
-
-// int DataManager::kickChannel(Client *clnt, Executor executor) {
-// 	std::string channel = executor.getParams(0);
-// 	std::string nickname = executor.getParams(1);
-// 	Channel *chan = getChannel(channel);
-// 	if (chan == NULL) {
-// 		return ERR_NOSUCHCHANNEL;
-// 	}
-	
-// 	return SUCCESS;
-// }
-
-// int DataManager::sendToChannel(Client *clnt, Executor executor) {
-// 	std::string channel = executor.getParams(0).substr(1);
-// 	std::string message = executor.getParams(1);
-
-// 	Channel *chan = getChannel(channel);
-// 	if (chan == NULL) {
-// 	}
-// }
 
 bool DataManager::isChannelOperator(Channel *chan, Client *clnt) {
 	if (chan->getClients().find(clnt->getFd()) == chan->getClients().end()) {
@@ -190,6 +174,6 @@ void DataManager::sendToClientChannels(Client *clnt, std::string message) {
 	std::set<std::string>::iterator it;
 	for (it = channels.begin(); it != channels.end(); it++) {
 		Channel *chan = getChannel(*it);
-		sendToChannel(chan, message);
+		sendToChannel(chan, message, clnt->getFd());
 	}
 }

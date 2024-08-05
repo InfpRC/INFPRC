@@ -51,7 +51,7 @@ public:
 	int inviteChannel(Client *clnt, Executor executor);
 	int kickChannel(Client *clnt, Executor executor);
 	void sendToClient(Client *clnt, std::string message);
-	void sendToChannel(Channel *chan, std::string message);
+	void sendToChannel(Channel *chan, std::string message, int except);
 
 	void sendToAll(std::string message);
 
