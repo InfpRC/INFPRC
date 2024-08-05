@@ -172,6 +172,9 @@ void DataManager::delClientFromChannel(Client *clnt, Channel *chan) {
 void DataManager::sendToClientChannels(Client *clnt, std::string message) {
 	std::set<std::string> channels = clnt->getJoinedChannels();
 	std::set<std::string>::iterator it;
+	if (channels.empty()) {
+		sendToClient(clnt, message);
+	}
 	for (it = channels.begin(); it != channels.end(); it++) {
 		Channel *chan = getChannel(*it);
 		sendToChannel(chan, message, clnt->getFd());

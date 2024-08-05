@@ -17,7 +17,7 @@ private:
 	std::string _name;
 	std::string _topic;
 	std::string _key; // 비밀번호
-	size_t _limit;	  // 최대 인원 수
+	int _limit;	  // 최대 인원 수
 	bool _inviteOnly; // 초대만 가능
 
 	time_t _created;

@@ -40,6 +40,7 @@ private:
 	std::string _command;
 	DataManager *_data_manager;
 
+	void changeMode(Channel *chan);
 	std::string makeSource(bool is_clnt);
 
 public:

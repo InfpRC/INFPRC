@@ -115,13 +115,11 @@ void Server::parsing(Client *clnt) {
 			executor.partCommand();
 		} else if (command == "KICK") {
 			executor.kickCommand();
+		} else if (executor.getCommand() == "MODE") {
+			executor.modeCommand();
 		} else if (command == "PRIVMSG") {
 			executor.privmsgCommand();
-		} /* else if (command == "MODE") {
-			executor.modeCommand();
-		} else if (command == "") {
-			executor.moreCommand();
-		} */
+		}
 		std::cout << clnt->getSendBuf();
 	}
 }
