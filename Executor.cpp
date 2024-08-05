@@ -302,13 +302,13 @@ void Executor::modeCommand() {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
 		} else if (chan == nullptr) {
-			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + channel_name + " :No such channel");
+			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + channel_name + " :No such channel\r\n");
 		} else if (_params.size() == 1) {
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 324 " + _clnt->getNickname() + " " + channel_name + " +" + chan->getModeList() + "\r\n");
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 329 " + _clnt->getNickname() + " " + channel_name + " " + chan->getCreated() + "\r\n");
 			return ;
 		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
-			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + channel_name + " :You're not channel operator");
+			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + channel_name + " :You're not channel operator\r\n");
 		}
 		changeMode(chan);
 	} catch (const std::exception &e) {
