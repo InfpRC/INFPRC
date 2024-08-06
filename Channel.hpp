@@ -18,7 +18,8 @@ private:
 	std::string _topic;
 	std::string _key; // 비밀번호
 	int _limit;	  // 최대 인원 수
-	bool _inviteOnly; // 초대만 가능
+	bool _invite_only; // 초대만 가능
+	bool _topic_only; // 토픽 권한
 
 	time_t _created;
 	time_t _topic_created;
@@ -50,6 +51,7 @@ public:
 	std::string const &getKey() const;
 	size_t getLimit() const;
 	bool getInviteOnly() const;
+	bool getTopicOnly() const;
 	std::map<int, int> &getClients();
 	std::vector<int> getClientsFd();
 	std::string getModeList();

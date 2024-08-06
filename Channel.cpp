@@ -1,7 +1,7 @@
 
 #include "Channel.hpp"
 
-Channel::Channel(std::string const &name): _name(name), _limit(-1), _inviteOnly(false), _created(time(NULL)) {
+Channel::Channel(std::string const &name): _name(name), _limit(-1), _invite_only(false), _topic_only(true), _created(time(NULL)) {
 }
 
 Channel::~Channel() {}
@@ -18,8 +18,8 @@ void Channel::setLimit(size_t limit) {
 	_limit = limit;
 }
 
-void Channel::setInviteOnly(bool inviteOnly) {
-	_inviteOnly = inviteOnly;
+void Channel::setInviteOnly(bool invite_only) {
+	_invite_only = invite_only;
 }
 
 void Channel::setTopic(std::string const &topic, int author_fd) {
@@ -65,7 +65,11 @@ size_t Channel::getLimit() const {
 }
 
 bool Channel::getInviteOnly() const {
-	return _inviteOnly;
+	return _invite_only;
+}
+
+bool Channel::getTopicOnly() const {
+	return _topic_only;
 }
 
 size_t Channel::getClientNum() {
@@ -109,10 +113,10 @@ int Channel::isInvited(int fd) {
 
 std::string Channel::getModeList() {
 	std::string mode_list;
-	if (_inviteOnly) {
+	if (_invite_only) {
 		mode_list.append("i");
 	}
-	if (_topic.empty()) {
+	if (_topic_only) {
 		mode_list.append("t");
 	}
 	if (_limit >= 0) {
