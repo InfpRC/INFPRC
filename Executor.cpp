@@ -284,7 +284,7 @@ void Executor::kickCommand() {
 			} else if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(users[i])))) {
 				throw std::logic_error(makeSource(SERVER) + " 441 " + _clnt->getNickname() + " " + chan_name + " :They aren't on that channel\r\n");
 			}
-			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " " + getParams(2) + "\r\n", _clnt->getFd());
+			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " " + getParams(2) + "\r\n", -1);
 			_data_manager->delClientFromChannel(_data_manager->getClient(_data_manager->getFdByNickname(users[i])), chan);
 		}
 	} catch(const std::exception& e) {
