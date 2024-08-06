@@ -59,6 +59,7 @@ public:
 	void partCommand();
 	void kickCommand();
 	void modeCommand();
+	void privmsgCommand();
 };
 
 #endif
