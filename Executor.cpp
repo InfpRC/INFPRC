@@ -190,7 +190,7 @@ void Executor::joinCommand() {
 			_data_manager->addClientToChannel(_clnt, chan, role);
 			/* join reply message */
 			// sendToChannel 사용!
-			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " JOIN :" + chans[i] + "\r\n", _clnt->getFd());
+			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " JOIN :" + chans[i] + "\r\n", -1);
 			
 			// join한 클라이언트에게 전송
 			if (!chan->getTopic().empty()) {
@@ -249,7 +249,7 @@ void Executor::partCommand() {
 			} else if (!_data_manager->isChannelMember(chan, _clnt)) {
 				throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chans[i] + " :You're not on that channel\r\n");
 			}
-			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PART " + chans[i] + " :" + reason + "\r\n", _clnt->getFd());
+			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " PART " + chans[i] + " :" + reason + "\r\n", -1);
 			_data_manager->delClientFromChannel(_clnt, chan);
 		}
 	} catch (const std::exception& e) {
