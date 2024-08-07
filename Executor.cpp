@@ -336,7 +336,10 @@ void Executor::changeMode(Channel *chan) {
 					success_option.append("i");
 				}
 			} else if (option[i] == 't') {
-				//modeT(chan);
+				if ((flag == true && !chan->getTopicOnly()) || (flag == false && chan->getTopicOnly())) {
+					chan->setTopicOnly(flag);
+					success_option.append("t");
+				}
 			} else if (option[i] == 'l') {
 				if (flag == true) {
 					std::string size_string = getParams(index++);
