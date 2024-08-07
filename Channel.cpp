@@ -22,6 +22,10 @@ void Channel::setInviteOnly(bool invite_only) {
 	_invite_only = invite_only;
 }
 
+void Channel::setTopicOnly(bool topic_only) {
+	_topic_only = topic_only;
+}
+
 void Channel::setTopic(std::string const &topic, int author_fd) {
 	_topic = topic;
 	_topic_created = time(NULL);

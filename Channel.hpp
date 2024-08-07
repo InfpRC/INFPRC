@@ -37,6 +37,7 @@ public:
 	void setKey(std::string const &key);
 	void setLimit(size_t limit);
 	void setInviteOnly(bool inviteOnly);
+	void setTopicOnly(bool inviteOnly);
 	void setTopic(std::string const &topic, int author_fd);
 
 	void inviteClient(int fd);
