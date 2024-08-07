@@ -77,6 +77,7 @@ void Executor::nickCommand(std::string create_time) {
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + nick + " :irc.seoul42.com 1.0\r\n");
 				_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
 			} else if (!_clnt->getUsername().empty()) {
+				_data_manager->sendToClient(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
 				_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
 			}
 			_clnt->setNickname(nick);
@@ -197,7 +198,7 @@ void Executor::joinCommand() {
 				// 1. RPL_TOPIC (332): 채널의 주제를 전송합니다. 주제가 없을 경우 전송되지 않을 수 있습니다.
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 332 " + _clnt->getNickname() + " " + chans[i] + " :" + chan->getTopic() + "\r\n");
 				// 2. RPL_TOPICWHOTIME (333): 주제를 설정한 사용자와 시간을 전송합니다. (선택적)
-				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 333 " + _clnt->getNickname() + " " + chans[i] + /* " " + chan->setBy() + " " + chan->setTime() + */"\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 333 " + _clnt->getNickname() + " " + chans[i] + " " + chan->getTopicAuthor() + " " + chan->getTopicCreated() + "\r\n");
 			}
 			
 			// RPL_NAMREPLY (353): 채널에 현재 참여하고 있는 클라이언트들의 리스트를 전송합니다.
@@ -253,6 +254,38 @@ void Executor::partCommand() {
 			_data_manager->delClientFromChannel(_clnt, chan);
 		}
 	} catch (const std::exception& e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
+
+void Executor::topicCommand() {
+	std::string chan_name(getParams(0));
+	std::string topic(getParams(1));
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.size() < 1) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " TOPIC :Not enough parameters\r\n");
+		}
+		Channel *chan = _data_manager->getChannel(chan_name.substr(1));
+		if (_params.size() == 1) {
+			if (chan->getTopic().empty()) {
+				throw std::logic_error(makeSource(SERVER) + " 331 " + _clnt->getNickname() + " " + chan_name + " No topic is set\r\n");
+			}
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 332 " + _clnt->getNickname() + " " + chan_name + " " + topic + "\r\n");
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 333 " + _clnt->getNickname() + " " + chan_name + " " + chan->getTopicAuthor() + chan->getTopicCreated() + "\r\n");
+		} else if (!chan) {
+			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + chan_name + " TOPIC :No such channel\r\n");
+		} else if (!_data_manager->isChannelMember(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chan_name + " :You're not on that channel\r\n");
+		} else if (!_data_manager->isChannelOperator(chan, _clnt) && chan->getTopicOnly()) {
+			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + chan_name + " :You're not channel operator\r\n");
+		} else if (chan->getTopic() == topic) {
+			return ;
+		}
+		chan->setTopic(topic, _clnt->getNickname() + "!" + _clnt->getUsername() + "@" + _clnt->getIp());
+		_data_manager->sendToChannel(chan, makeSource(CLIENT) + " TOPIC " + chan_name + " " + topic + "\r\n", -1);
+	} catch (const std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
 }
