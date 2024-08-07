@@ -270,13 +270,16 @@ void Executor::topicCommand() {
 		} else if (topic.empty()) {
 			if (chan->getTopic().empty()) {
 				throw std::logic_error(makeSource(SERVER) + " 331 " + _clnt->getNickname() + " " + chan_name + " No topic is set\r\n");
-
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 332 " + _clnt->getNickname() + " " + chan_name + " " + topic + "\r\n");
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 333 " + _clnt->getNickname() + " " + chan_name + " " + _data_manager->getClient(chan->getTopicAuthor())->getNickname() + " " + chan->getTopicCreated() + "\r\n");
 			}
 		} else if (!_data_manager->isChannelMember(chan, _clnt)) {
 			throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chan_name + " :You're not on that channel\r\n");
-		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
+		} else if (!_data_manager->isChannelOperator(chan, _clnt) && chan->getTopicOnly()) {
 			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + chan_name + " :You're not channel operator\r\n");
 		}
+		chan->setTopic(topic, _clnt->getFd());
+		_data_manager->sendToChannel(chan, makeSource(CLIENT) + " TOPIC " + chan_name + " " + topic + "\r\n", -1);
 	} catch (const std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
