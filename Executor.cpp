@@ -77,6 +77,7 @@ void Executor::nickCommand(std::string create_time) {
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + nick + " :irc.seoul42.com 1.0\r\n");
 				_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
 			} else if (!_clnt->getUsername().empty()) {
+				// _data_manager->sendToClient(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
 				_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
 			}
 			_clnt->setNickname(nick);
@@ -253,6 +254,30 @@ void Executor::partCommand() {
 			_data_manager->delClientFromChannel(_clnt, chan);
 		}
 	} catch (const std::exception& e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
+
+void Executor::topicCommand() {
+	std::string chan_name(getParams(0));
+	Channel *chan = _data_manager->getChannel(chan_name);
+	std::string topic(getParams(1));
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.size() < 1) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " TOPIC :Not enough parameters\r\n");
+		} else if (topic.empty()) {
+			if (chan->getTopic().empty()) {
+				throw std::logic_error(makeSource(SERVER) + " 331 " + _clnt->getNickname() + " " + chan_name + " No topic is set\r\n");
+
+			}
+		} else if (!_data_manager->isChannelMember(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chan_name + " :You're not on that channel\r\n");
+		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + chan_name + " :You're not channel operator\r\n");
+		}
+	} catch (const std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
 }

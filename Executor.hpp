@@ -57,6 +57,7 @@ public:
 	void quitCommand();
 	void joinCommand();
 	void partCommand();
+	void topicCommand();
 	void kickCommand();
 	void modeCommand();
 	void privmsgCommand();
