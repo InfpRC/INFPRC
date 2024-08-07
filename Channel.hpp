@@ -23,7 +23,7 @@ private:
 
 	time_t _created;
 	time_t _topic_created;
-	int _topic_author;
+	std::string _topic_author;
 
 	std::map<int, int> _clients; // fd, operator
 	std::set<int> _invited;		 // 초대된 인원
@@ -38,7 +38,7 @@ public:
 	void setLimit(size_t limit);
 	void setInviteOnly(bool inviteOnly);
 	void setTopicOnly(bool inviteOnly);
-	void setTopic(std::string const &topic, int author_fd);
+	void setTopic(std::string const &topic, std::string author);
 
 	void inviteClient(int fd);
 	void addClient(int fd, int chanops);
@@ -60,7 +60,7 @@ public:
 
 	std::string getCreated();
 	std::string getTopicCreated();
-	int getTopicAuthor();
+	std::string getTopicAuthor();
 
 	int isInvited(int fd);
 	
