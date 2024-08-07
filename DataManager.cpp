@@ -170,13 +170,19 @@ void DataManager::delClientFromChannel(Client *clnt, Channel *chan) {
 }
 
 void DataManager::sendToClientChannels(Client *clnt, std::string message) {
+	std::set<int> fds;
 	std::set<std::string> channels = clnt->getJoinedChannels();
-	std::set<std::string>::iterator it;
-	if (channels.empty()) {
-		sendToClient(clnt, message);
-	}
-	for (it = channels.begin(); it != channels.end(); it++) {
+	for (std::set<std::string>::iterator it = channels.begin(); it != channels.end(); it++) {
 		Channel *chan = getChannel(*it);
-		sendToChannel(chan, message, clnt->getFd());
+		std::vector<int> chan_fds = chan->getClientsFd();
+		for (size_t i = 0; i < chan_fds.size(); i++) {
+			if (chan_fds[i] == clnt->getFd()) {
+				continue;
+			}
+			fds.insert(chan_fds[i]);
+		}
+	}
+	for (std::set<int>::iterator it = fds.begin(); it != fds.end(); it++) {
+		sendToClient(getClient(*it), message);
 	}
 }
