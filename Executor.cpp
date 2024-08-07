@@ -267,6 +267,8 @@ void Executor::topicCommand() {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
 		} else if (_params.size() < 1) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " TOPIC :Not enough parameters\r\n");
+		} else if (!chan) {
+			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + chan_name + " TOPIC :No such channel\r\n");
 		} else if (!_data_manager->isChannelMember(chan, _clnt)) {
 			throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chan_name + " :You're not on that channel\r\n");
 		} else if (!_data_manager->isChannelOperator(chan, _clnt) && chan->getTopicOnly()) {
