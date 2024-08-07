@@ -26,10 +26,10 @@ void Channel::setTopicOnly(bool topic_only) {
 	_topic_only = topic_only;
 }
 
-void Channel::setTopic(std::string const &topic, int author_fd) {
+void Channel::setTopic(std::string const &topic, std::string author) {
 	_topic = topic;
 	_topic_created = time(NULL);
-	_topic_author = author_fd;
+	_topic_author = author;
 }
 
 void Channel::inviteClient(int fd) {
@@ -104,7 +104,7 @@ std::string Channel::getTopicCreated() {
 	return ss.str();
 }
 
-int Channel::getTopicAuthor() {
+std::string Channel::getTopicAuthor() {
 	return _topic_author;
 }
 
