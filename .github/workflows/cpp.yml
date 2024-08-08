@@ -11,7 +11,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
+    - name: Set up dependencies
+      run: |
+        brew install gcc make
     - name: make
       run: make
