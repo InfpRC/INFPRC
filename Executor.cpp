@@ -143,6 +143,7 @@ void Executor::pongCommand() {
 
 void Executor::quitCommand() {
 	_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
+	_data_manager->sendToClient(_clnt, "");
 	_clnt->setPassed(false);
 }
 
