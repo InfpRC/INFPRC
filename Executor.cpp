@@ -76,6 +76,7 @@ void Executor::nickCommand(std::string create_time) {
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + nick + " :This server was created " + create_time + "\r\n");
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + nick + " :irc.seoul42.com 1.0\r\n");
 				_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
+				_clnt->setPing(false);
 			} else if (!_clnt->getUsername().empty()) {
 				_data_manager->sendToClient(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
 				_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " NICK " + nick + "\r\n");
@@ -104,6 +105,7 @@ void Executor::userCommand(std::string create_time) {
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created " + create_time + "\r\n");
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0\r\n");
 			_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
+			_clnt->setPing(false);
 		}
 	} catch (std::exception &e) {
 		_data_manager->sendToClient(_clnt, e.what());
@@ -168,7 +170,12 @@ void Executor::joinCommand() {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
 		} else if (_params.empty()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " JOIN :Not enough parameters\r\n");
-		} for (size_t i = 0; i < chans.size(); i++) {
+		}
+		for (size_t i = 0; i < chans.size(); i++) {
+			if (chans[i][0] != '#') {
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 476 " + chans[i] + " :Bad Channel Mask\r\n");
+				continue ;
+			}
 			Channel *chan = _data_manager->getChannel(chans[i].substr(1, chans[i].size()));
 			int role = CHAN_MEM;
 			if (chan == nullptr) {
@@ -177,16 +184,17 @@ void Executor::joinCommand() {
 				role = CHAN_OPR;
 			} else if (!chan->getKey().empty()) {
 				if (keys.size() <= i || keys[i] != chan->getKey()) {
-					throw std::logic_error(makeSource(SERVER) + " 475 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+k)\r\n");
+					_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 475 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+k)\r\n");
+					continue ;
 				}
 			} else if (chan->getLimit() > 0 && chan->getClientNum() >= chan->getLimit()) {
-				throw std::logic_error(makeSource(SERVER) + " 471 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+l)\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 471 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+l)\r\n");
+				continue ;
 			} else if (chan->getInviteOnly()) {
 				if (chan->isInvited(_clnt->getFd()) == 0) {
-					throw std::logic_error(makeSource(SERVER) + " 473 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+i)\r\n");
+					_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 473 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+i)\r\n");
+					continue ;
 				}
-			} else if (chans[i][0] != '#') {
-				throw std::logic_error(makeSource(SERVER) + " 476 " + chans[i] + " :Bad Channel Mask\r\n");
 			}
 			_data_manager->addClientToChannel(_clnt, chan, role);
 			/* join reply message */
@@ -200,7 +208,6 @@ void Executor::joinCommand() {
 				// 2. RPL_TOPICWHOTIME (333): 주제를 설정한 사용자와 시간을 전송합니다. (선택적)
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 333 " + _clnt->getNickname() + " " + chans[i] + " " + chan->getTopicAuthor() + " " + chan->getTopicCreated() + "\r\n");
 			}
-			
 			// RPL_NAMREPLY (353): 채널에 현재 참여하고 있는 클라이언트들의 리스트를 전송합니다.
 			size_t client_number = 0;
 			while (client_number < chan->getClientNum()) {
@@ -222,7 +229,6 @@ void Executor::joinCommand() {
 			}
 			// RPL_ENDOFNAMES (366): 클라이언트 리스트의 끝을 알리는 메시지입니다.
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 366 " + _clnt->getNickname() + " " + chans[i] + " :End of /NAMES list.\r\n");
-			
 		}
 	} catch (const std::exception& e) {
 		_data_manager->sendToClient(_clnt, e.what());
