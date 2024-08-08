@@ -462,10 +462,11 @@ void Executor::privmsgCommand() {
 				} else {
 					if (_data_manager->getFdByNickname(receiver) == -1 || !_data_manager->getClient(_data_manager->getFdByNickname(receiver))) {
 						throw std::logic_error(makeSource(SERVER) + " 401 " + _clnt->getNickname() + " " + receiver + " :No such nick\r\n");
-					} if (!message.empty()) {
-						_data_manager->sendToClient(_data_manager->getClient(_data_manager->getFdByNickname(receiver)), 
-						makeSource(CLIENT) + " PRIVMSG " + receiver + " :" + message + "\r\n");
+					} if (message.empty()) {
+						throw std::logic_error(makeSource(SERVER) + " 412 " + _clnt->getNickname() + " :No text to send\r\n");
 					}
+					_data_manager->sendToClient(_data_manager->getClient(_data_manager->getFdByNickname(receiver)), 
+					makeSource(CLIENT) + " PRIVMSG " + receiver + " :" + message + "\r\n");
 				}
 			}
 		}
