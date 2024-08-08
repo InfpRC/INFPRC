@@ -109,10 +109,14 @@ std::string Channel::getTopicAuthor() {
 }
 
 int Channel::isInvited(int fd) {
+	int check;
 	if (_invited.find(fd) != _invited.end()) {
-		return 1;
+		check = 1;
+	} else {
+		check = 0;
 	}
-	return 0;
+	_invited.erase(fd);
+	return check;
 }
 
 std::string Channel::getModeList() {
