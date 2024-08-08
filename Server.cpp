@@ -59,13 +59,17 @@ void Server::eventWriteExec(struct kevent event) {
 	if (clnt != NULL) {
 		if (clnt->sendSocket()) {
 			_kq.delEvent(clnt->getFd(), EVFILT_WRITE);
-			if (clnt->getPassed())
-			{
+			if (clnt->getPassed()) {
 				_kq.addEvent(clnt->getFd(), EVFILT_READ);
-			}
-			else
-			{
+			} else {
 				std::cout << "closed client: " << clnt->getFd() << std::endl;
+				std::set<std::string> chans = clnt->getJoinedChannels();
+				for (std::set<std::string>::iterator it = chans.begin(); it != chans.end(); ++it) {
+					Channel *chan = _data_manager.getChannel(*it);
+					if (chan != nullptr) {
+						_data_manager.delClientFromChannel(clnt, chan);
+					}
+				}
 				close(clnt->getFd());
 				_data_manager.delClient(clnt->getFd());
 			}
@@ -73,18 +77,18 @@ void Server::eventWriteExec(struct kevent event) {
 	}
 }
 
-void Server::eventTimerExec(struct kevent event)
-{
+void Server::eventTimerExec(struct kevent event) {
 	Client *clnt = _data_manager.getClient(event.ident);
-	if (clnt != NULL)
-	{
+	if (clnt != NULL) {
 		if (clnt->getPing()) {
-			clnt->setSendBuf(":irc.seoul42.com PING :ping pong\r\n");
+			clnt->setSendBuf("PING :ping pong\r\n");
 			clnt->setPing(false);
 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
 		} else {
-			clnt->setSendBuf(":irc.seoul42.com NOTICE " + clnt->getNickname() + " :Incorrect PONG response received\r\n");
+			std::string source = ":" + clnt->getNickname() + "!" + clnt->getUsername() + "@" + clnt->getIp();
+			_data_manager.sendToClient(clnt, ":irc.seoul42.com NOTICE " + clnt->getNickname() + " :Ping Timeout\r\n");
+			_data_manager.sendToClientChannels(clnt, source + " QUIT :Ping Timeout\r\n");
 			clnt->setPassed(false);
 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
 			_kq.addEvent(clnt->getFd(), EVFILT_WRITE);
