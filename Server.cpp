@@ -115,8 +115,8 @@ void Server::parsing(Client *clnt) {
 			executor.partCommand();
 		} else if (command == "TOPIC") {
 			executor.topicCommand();
-		// } else if (command == "INVITE") {
-		// 	executor.inviteCommand();
+		} else if (command == "INVITE") {
+			executor.inviteCommand();
 		} else if (command == "KICK") {
 			executor.kickCommand();
 		} else if (command == "MODE") {

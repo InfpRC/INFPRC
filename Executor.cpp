@@ -290,6 +290,35 @@ void Executor::topicCommand() {
 	}
 }
 
+void Executor::inviteCommand() {
+	std::string user(getParams(0));
+	Client *invite_clnt = _data_manager->getClient(_data_manager->getFdByNickname(user));
+	std::string chan_name(getParams(1));
+	Channel *chan = _data_manager->getChannel(chan_name.substr(1));
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.size() < 2) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " INVITE :Not enough parameters\r\n");
+		} else if (!invite_clnt) {
+			throw std::logic_error(makeSource(SERVER) + " 401 " + _clnt->getNickname() + " " + user + " :No such nick\r\n");
+		} else if (!chan) {
+			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + chan_name + " :No such channel\r\n");
+		} else if (!_data_manager->isChannelMember(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chan_name + " :You're not on that channel\r\n");
+		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + chan_name + " :You're not channel operator\r\n");
+		} else if (_data_manager->isChannelMember(chan, invite_clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 443 " + _clnt->getNickname() + " " + user + " " + chan_name + " :is already on channel\r\n");
+		}
+		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 341 " + _clnt->getNickname() + " " + user + " " + chan_name + "\r\n");
+		_data_manager->sendToClient(invite_clnt, makeSource(CLIENT) + " INVITE " + user + " :" + chan_name + "\r\n");
+		chan->inviteClient(invite_clnt->getFd());
+	} catch(const std::exception& e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
+
 void Executor::kickCommand() {
 	std::string chan_name(getParams(0));
 	Channel *chan = _data_manager->getChannel(chan_name.substr(1));
