@@ -70,7 +70,7 @@ void Executor::nickCommand(std::string create_time) {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
 		if (nick != _clnt->getNickname()) {
-			if (!_clnt->getUsername().empty() && _clnt->getNickname().empty()) {
+			if (!_clnt->getUsername().empty() && _clnt->getNickname() == "*") {
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "\r\n");
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + nick + " :Your host is irc.seoul42.com\r\n");
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + nick + " :This server was created " + create_time + "\r\n");
