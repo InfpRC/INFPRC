@@ -173,7 +173,7 @@ void Executor::joinCommand() {
 		}
 		for (size_t i = 0; i < chans.size(); i++) {
 			if (chans[i][0] != '#') {
-				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 476 " + chans[i] + " :Bad Channel Mask\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + chans[i] + " :No such channel\r\n");
 				continue ;
 			}
 			Channel *chan = _data_manager->getChannel(chans[i].substr(1, chans[i].size()));
@@ -250,7 +250,10 @@ void Executor::partCommand() {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PART :Not enough parameters\r\n");
 		}
 		for (size_t i = 0; i < chans.size(); i++) {
-			Channel *chan = _data_manager->getChannel(chans[i].substr(1));
+			Channel *chan = NULL;
+			if (chans[i][0] == '#') {
+				chan = _data_manager->getChannel(chans[i].substr(1, chans[i].size()));
+			}
 			if (chan == nullptr) {
 				throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + chans[i] + " :No such channel\r\n");
 			} else if (!_data_manager->isChannelMember(chan, _clnt)) {
@@ -273,7 +276,10 @@ void Executor::topicCommand() {
 		} else if (_params.size() < 1) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " TOPIC :Not enough parameters\r\n");
 		}
-		Channel *chan = _data_manager->getChannel(chan_name.substr(1));
+		Channel *chan = NULL;
+		if (chan_name[0] == '#') {
+			chan = _data_manager->getChannel(chan_name.substr(1));
+		}
 		if (!chan) {
 			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + chan_name + " TOPIC :No such channel\r\n");
 		} else if (_params.size() == 1) {
@@ -300,7 +306,10 @@ void Executor::inviteCommand() {
 	std::string user(getParams(0));
 	Client *invite_clnt = _data_manager->getClient(_data_manager->getFdByNickname(user));
 	std::string chan_name(getParams(1));
-	Channel *chan = _data_manager->getChannel(chan_name.substr(1));
+	Channel *chan = NULL;
+	if (chan_name[0] == '#') {
+		chan = _data_manager->getChannel(chan_name.substr(1));
+	}
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
@@ -327,7 +336,10 @@ void Executor::inviteCommand() {
 
 void Executor::kickCommand() {
 	std::string chan_name(getParams(0));
-	Channel *chan = _data_manager->getChannel(chan_name.substr(1));
+	Channel *chan = NULL;
+	if (chan_name[0] == '#') {
+		chan = _data_manager->getChannel(chan_name.substr(1));
+	}
 	std::stringstream ss_user(getParams(1));
 	std::vector<std::string> users;
 	std::string token;
@@ -362,10 +374,10 @@ void Executor::kickCommand() {
 
 void Executor::modeCommand() {
 	std::string channel_name = getParams(0);
-	if (channel_name[0] != '#') {
-		return ;
+	Channel *chan = NULL;
+	if (channel_name[0] == '#') {
+		chan = _data_manager->getChannel(channel_name.substr(1));
 	}
-	Channel *chan = _data_manager->getChannel(channel_name.substr(1, channel_name.size()));;
 	try {
 		if (!_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
