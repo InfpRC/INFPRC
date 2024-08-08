@@ -336,15 +336,14 @@ void Executor::inviteCommand() {
 
 void Executor::kickCommand() {
 	std::string chan_name(getParams(0));
-	Channel *chan = NULL;
+  Channel *chan = NULL;
 	if (chan_name[0] == '#') {
 		chan = _data_manager->getChannel(chan_name.substr(1));
 	}
-	std::stringstream ss_user(getParams(1));
-	std::vector<std::string> users;
-	std::string token;
-	while (std::getline(ss_user, token, ',')) {
-		users.push_back(token);
+  std::string user(getParams(1));
+	size_t comma = user.find(',');
+	if (!user.empty() && comma != std::string::npos) {
+		user = user.substr(0, comma);
 	}
 	try {
 		if (!_clnt->getPassed()) {
@@ -357,16 +356,13 @@ void Executor::kickCommand() {
 			throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chan_name + " :You're not on that channel\r\n");
 		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
 			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + chan_name + " :You're not channel operator\r\n");
+		} else if (_data_manager->getFdByNickname(user) == -1 || !_data_manager->getClient(_data_manager->getFdByNickname(user))) {
+			throw std::logic_error(makeSource(SERVER) + " 401 " + _clnt->getNickname() + " " + user + " :No such nick\r\n");
+		} else if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(user)))) {
+			throw std::logic_error(makeSource(SERVER) + " 441 " + _clnt->getNickname() + " " + chan_name + " :They aren't on that channel\r\n");
 		}
-		for (size_t i = 0; i < users.size(); i++) {
-			if (_data_manager->getFdByNickname(users[i]) == -1 || !_data_manager->getClient(_data_manager->getFdByNickname(users[i]))) {
-				throw std::logic_error(makeSource(SERVER) + " 401 " + _clnt->getNickname() + " " + users[i] + " :No such nick\r\n");
-			} else if (!_data_manager->isChannelMember(chan, _data_manager->getClient(_data_manager->getFdByNickname(users[i])))) {
-				throw std::logic_error(makeSource(SERVER) + " 441 " + _clnt->getNickname() + " " + chan_name + " :They aren't on that channel\r\n");
-			}
-			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " KICK " + chan_name + " " + users[i] + " " + getParams(2) + "\r\n", -1);
-			_data_manager->delClientFromChannel(_data_manager->getClient(_data_manager->getFdByNickname(users[i])), chan);
-		}
+		_data_manager->sendToChannel(chan, makeSource(CLIENT) + " KICK " + chan_name + " " + user + " " + getParams(2) + "\r\n", -1);
+		_data_manager->delClientFromChannel(_data_manager->getClient(_data_manager->getFdByNickname(user)), chan);
 	} catch(const std::exception& e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
