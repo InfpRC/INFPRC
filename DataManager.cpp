@@ -11,7 +11,11 @@ void DataManager::addClient(Client *clnt) {
 }
 
 void DataManager::delClient(int fd) {
+	Client *clnt = getClient(fd);
 	_clients.erase(fd);
+	if (clnt != NULL) {
+		delete clnt;
+	}
 }
 
 Client *DataManager::getClient(int fd) {
@@ -71,7 +75,11 @@ void DataManager::addChannel(Channel *channel) {
 }
 
 void DataManager::delChannel(std::string name) {
+	Channel *chan = getChannel(name);
 	_channels.erase(name);
+	if (chan != NULL) {
+		delete chan;
+	}
 }
 
 Channel *DataManager::getChannel(std::string name) {

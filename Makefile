@@ -1,11 +1,11 @@
 NAME = ircserv
-SRCS = main.cpp Client.cpp Kqueue.cpp Channel.cpp Server.cpp Socket.cpp Executor.cpp DataManager.cpp
-INCS = Client.cpp Kqueue.hpp Channel.hpp Server.hpp Socket.hpp Executor.hpp DataManager.hpp
+SRCS = main.cpp Client.cpp Kqueue.cpp Channel.cpp DataManager.cpp Server.cpp Socket.cpp Executor.cpp
+INCS = Client.hpp Kqueue.hpp Channel.hpp DataManager.hpp Server.hpp Socket.hpp Executor.hpp
 INC_DIR = -I ./
 OBJ_DIR = objs
 OBJS = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 CPP = c++ -std=c++98
-CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror
 
 all : $(NAME)
 
