@@ -41,6 +41,7 @@ public:
 	void setTopic(std::string const &topic, std::string author);
 
 	void inviteClient(int fd);
+	void delInvitedClient(int fd);
 	void addClient(int fd, int chanops);
 	void delClient(int fd);
 	void addOperator(int fd);

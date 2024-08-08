@@ -36,6 +36,10 @@ void Channel::inviteClient(int fd) {
 	_invited.insert(fd);
 }
 
+void Channel::delInvitedClient(int fd) {
+	_invited.erase(fd);
+}
+
 void Channel::addClient(int fd, int chanops) {
 	_clients[fd] = chanops;
 }
@@ -109,14 +113,10 @@ std::string Channel::getTopicAuthor() {
 }
 
 int Channel::isInvited(int fd) {
-	int check;
 	if (_invited.find(fd) != _invited.end()) {
-		check = 1;
-	} else {
-		check = 0;
+		return 1;
 	}
-	_invited.erase(fd);
-	return check;
+	return 0;
 }
 
 std::string Channel::getModeList() {

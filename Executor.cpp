@@ -229,6 +229,7 @@ void Executor::joinCommand() {
 			}
 			// RPL_ENDOFNAMES (366): 클라이언트 리스트의 끝을 알리는 메시지입니다.
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 366 " + _clnt->getNickname() + " " + chans[i] + " :End of /NAMES list.\r\n");
+			chan->delInvitedClient(_clnt->getFd());
 		}
 	} catch (const std::exception& e) {
 		_data_manager->sendToClient(_clnt, e.what());
@@ -373,6 +374,8 @@ void Executor::modeCommand() {
 	Channel *chan = NULL;
 	if (channel_name[0] == '#') {
 		chan = _data_manager->getChannel(channel_name.substr(1));
+	} else if (_clnt->getNickname() == channel_name) {
+		return;
 	}
 	try {
 		if (!_clnt->getPassed()) {
