@@ -14,7 +14,9 @@
 #include "Executor.hpp"
 #include "DataManager.hpp"
 
+class DataManager;
 class Message;
+class Executor;
 
 class Server
 {
