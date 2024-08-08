@@ -44,9 +44,9 @@ void Server::eventReadExec(struct kevent event) {
 		int result = clnt->recvSocket();
 		if (result == EOF) {
 			std::cout << "closed client: " << clnt->getFd() << std::endl;
+			_data_manager.sendToClientChannels(clnt, ":" + clnt->getNickname() + "!" + clnt->getUsername() + "@" + clnt->getIp() + " QUIT :Client Disconnected\r\n");
+			clnt->setPassed(false);
 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
-			close(clnt->getFd());
-			_data_manager.delClient(clnt->getFd());
 		}
 		else if (result == END) {
 			parsing(clnt);
@@ -70,8 +70,8 @@ void Server::eventWriteExec(struct kevent event) {
 						_data_manager.delClientFromChannel(clnt, chan);
 					}
 				}
-				close(clnt->getFd());
 				_data_manager.delClient(clnt->getFd());
+				close(clnt->getFd());
 			}
 		}
 	}
