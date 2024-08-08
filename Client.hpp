@@ -9,7 +9,7 @@
 #include <arpa/inet.h>
 #include <set>
 
-#define BUFFER_SIZE 100
+#define BUFFER_SIZE 520
 #define END 0
 #define CONTINUE 1
 

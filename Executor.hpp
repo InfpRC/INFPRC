@@ -4,7 +4,7 @@
 
 #include <vector>
 #include <sstream>
-
+#include <string>
 #include "DataManager.hpp"
 
 #define SERVER 0
