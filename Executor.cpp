@@ -70,7 +70,7 @@ void Executor::nickCommand(std::string create_time) {
 			throw std::logic_error(makeSource(SERVER) + " 433 " + _clnt->getNickname() + " " + nick + " :Nickname is already in use\r\n");
 		}
 		if (nick != _clnt->getNickname()) {
-			if (!_clnt->getUsername().empty() && _clnt->getNickname().empty()) {
+			if (!_clnt->getUsername().empty() && _clnt->getNickname() == "*") {
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "\r\n");
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + nick + " :Your host is irc.seoul42.com\r\n");
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + nick + " :This server was created " + create_time + "\r\n");
@@ -286,6 +286,35 @@ void Executor::topicCommand() {
 		chan->setTopic(topic, _clnt->getNickname() + "!" + _clnt->getUsername() + "@" + _clnt->getIp());
 		_data_manager->sendToChannel(chan, makeSource(CLIENT) + " TOPIC " + chan_name + " " + topic + "\r\n", -1);
 	} catch (const std::exception &e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+}
+
+void Executor::inviteCommand() {
+	std::string user(getParams(0));
+	Client *invite_clnt = _data_manager->getClient(_data_manager->getFdByNickname(user));
+	std::string chan_name(getParams(1));
+	Channel *chan = _data_manager->getChannel(chan_name.substr(1));
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+		} else if (_params.size() < 2) {
+			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " INVITE :Not enough parameters\r\n");
+		} else if (!invite_clnt) {
+			throw std::logic_error(makeSource(SERVER) + " 401 " + _clnt->getNickname() + " " + user + " :No such nick\r\n");
+		} else if (!chan) {
+			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + chan_name + " :No such channel\r\n");
+		} else if (!_data_manager->isChannelMember(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chan_name + " :You're not on that channel\r\n");
+		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + chan_name + " :You're not channel operator\r\n");
+		} else if (_data_manager->isChannelMember(chan, invite_clnt)) {
+			throw std::logic_error(makeSource(SERVER) + " 443 " + _clnt->getNickname() + " " + user + " " + chan_name + " :is already on channel\r\n");
+		}
+		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 341 " + _clnt->getNickname() + " " + user + " " + chan_name + "\r\n");
+		_data_manager->sendToClient(invite_clnt, makeSource(CLIENT) + " INVITE " + user + " :" + chan_name + "\r\n");
+		chan->inviteClient(invite_clnt->getFd());
+	} catch(const std::exception& e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
 }
