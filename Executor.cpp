@@ -382,6 +382,8 @@ void Executor::modeCommand() {
 			return ;
 		} else if (!_data_manager->isChannelOperator(chan, _clnt)) {
 			throw std::logic_error(makeSource(SERVER) + " 482 " + _clnt->getNickname() + " " + channel_name + " :You're not channel operator\r\n");
+		} else if (option_check(getParams(1)) != -1) {
+			throw std::logic_error(makeSource(SERVER) + " 472 " + _clnt->getNickname() + " " + getParams(1)[option_check(getParams(1))] + " :is an unknown mode char to me\r\n");
 		}
 		changeMode(chan);
 	} catch (const std::exception &e) {
@@ -432,7 +434,7 @@ void Executor::changeMode(Channel *chan) {
 				std::string key = getParams(index++);
 				if (key == "") {
 					continue ;
-				} else if (flag == true && chan->getKey().empty()) {
+				} else if (flag == true) {
 					chan->setKey(key);
 					success_option.append("k");
 					param.push_back(key);
@@ -458,8 +460,6 @@ void Executor::changeMode(Channel *chan) {
 					success_option.append("o");
 					param.push_back(name);
 				}
-			} else {
-				throw std::logic_error(makeSource(SERVER) + " 472 " + _clnt->getNickname() + " " + option[i] + " :is an unknown mode char to me\r\n");
 			}
 		}
 	}
@@ -524,4 +524,14 @@ std::string Executor::makeSource(bool is_clnt) {
 		source = ":irc.seoul42.com";
 	}
 	return source;
+}
+
+int Executor::option_check(std::string option) {
+	std::string correct("+-ilkto");
+	for (size_t i = 0; i < option.size(); i++) {
+		if (correct.find(option[i]) == std::string::npos) {
+			return i;
+		}
+	}
+	return -1;
 }
