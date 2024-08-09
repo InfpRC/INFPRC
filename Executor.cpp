@@ -143,13 +143,7 @@ void Executor::pongCommand() {
 
 void Executor::quitCommand() {
 	_data_manager->sendToClientChannels(_clnt, makeSource(CLIENT) + " QUIT :Quit: " + getParams(0) + "\r\n");
-	std::set<std::string> chans = _clnt->getJoinedChannels();
-	for (std::set<std::string>::iterator it = chans.begin(); it != chans.end(); ++it) {
-		Channel *chan = _data_manager->getChannel(*it);
-		if (chan != nullptr) {
-			_data_manager->delClientFromChannel(_clnt, chan);
-		}
-	}
+	_data_manager->sendToClient(_clnt, "");
 	_clnt->setPassed(false);
 }
 
