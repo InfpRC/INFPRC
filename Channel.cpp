@@ -68,7 +68,7 @@ std::string const &Channel::getKey() const {
 	return _key;
 }
 
-size_t Channel::getLimit() const {
+int Channel::getLimit() const {
 	return _limit;
 }
 
