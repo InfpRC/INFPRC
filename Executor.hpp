@@ -41,6 +41,7 @@ private:
 	DataManager *_data_manager;
 
 	void changeMode(Channel *chan);
+	int option_check(std::string option);
 	std::string makeSource(bool is_clnt);
 
 public:

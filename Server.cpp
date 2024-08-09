@@ -7,7 +7,6 @@ Server::~Server() {}
 
 void Server::run() {
 	_kq.addEvent(_serv.getFd(), EVFILT_READ);
-	_kq.updateEvent();
 	while (1) {
 		int size = _kq.updateEvent();
 		for (int i = 0; i < size; i++) {
