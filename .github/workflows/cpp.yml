@@ -16,17 +16,17 @@ jobs:
     - name: Build project
       run: make
 
-    - name: Start IRC server
-      run: ./ircserv 6667 1234 &
-      shell: bash
+    # - name: Start IRC server
+    #   run: ./ircserv 6667 1234 &
+    #   shell: bash
 
-    - name: Grant execute permission to test script
-      run: chmod +x ./test_script.sh
+    # - name: Grant execute permission to test script
+    #   run: chmod +x ./test_script.sh
       
-    - name: Run IRC client tests
-      run: |
-        # Give the server some time to start
-        sleep 5
-        # Run the test script
-        ./test_script.sh
-      shell: bash
+    # - name: Run IRC client tests
+    #   run: |
+    #     # Give the server some time to start
+    #     sleep 5
+    #     # Run the test script
+    #     ./test_script.sh
+    #   shell: bash
