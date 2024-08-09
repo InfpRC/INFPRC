@@ -63,6 +63,7 @@ public:
 	void kickCommand();
 	void modeCommand();
 	void privmsgCommand();
+	void nonCommand();
 };
 
 #endif
