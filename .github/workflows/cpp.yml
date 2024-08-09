@@ -6,7 +6,6 @@ on:
 
 jobs:
   build:
-
     runs-on: macos-latest
 
     steps:
@@ -14,18 +13,17 @@ jobs:
     - name: Set up dependencies
       run: |
         brew install gcc make
-    - name: make
+    - name: Build project
       run: make
-    
-    
+
     - name: Start IRC server
-        run: ./ircserv 6667 1234 &
-        shell: bash
+      run: ./ircserv 6667 1234 &
+      shell: bash
 
     - name: Run IRC client tests
-        run: |
-          # Give the server some time to start
-          sleep 5
-          # Run the test script
-          ./test_script.sh
-        shell: bash
+      run: |
+        # Give the server some time to start
+        sleep 5
+        # Run the test script
+        ./test_script.sh
+      shell: bash
