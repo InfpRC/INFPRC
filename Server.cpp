@@ -128,6 +128,8 @@ void Server::parsing(Client *clnt) {
 			executor.modeCommand();
 		} else if (command == "PRIVMSG") {
 			executor.privmsgCommand();
+		} else {
+			executor.nonCommand();
 		}
 		std::cout << clnt->getSendBuf();
 	}
