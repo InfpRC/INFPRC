@@ -71,8 +71,8 @@ void Server::eventWriteExec(struct kevent event) {
 					}
 				}
 				_kq.delEvent(clnt->getFd(), EVFILT_TIMER);
-				_data_manager.delClient(clnt->getFd());
 				close(clnt->getFd());
+				_data_manager.delClient(clnt->getFd());
 			}
 		}
 	}
@@ -128,6 +128,8 @@ void Server::parsing(Client *clnt) {
 			executor.modeCommand();
 		} else if (command == "PRIVMSG") {
 			executor.privmsgCommand();
+		} else {
+			executor.nonCommand();
 		}
 		std::cout << clnt->getSendBuf();
 	}

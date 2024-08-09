@@ -51,7 +51,7 @@ public:
 	std::string const &getName() const;
 	std::string const &getTopic() const;
 	std::string const &getKey() const;
-	size_t getLimit() const;
+	int getLimit() const;
 	bool getInviteOnly() const;
 	bool getTopicOnly() const;
 	std::map<int, int> &getClients();

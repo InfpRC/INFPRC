@@ -38,6 +38,7 @@ void Executor::passCommand(std::string password) {
 		if (_clnt->getPassed()) {
 			throw std::logic_error(makeSource(SERVER) + " 462 " + _clnt->getNickname() + " :You may not reregister\r\n");
 		} else if (password != "" && getParams(0) != password) {
+			_clnt->setPassed(false);
 			throw std::logic_error(makeSource(SERVER) + " 464 " + _clnt->getNickname() + " :Password incorrect\r\n");
 		}
 		_clnt->setPassed(true);
@@ -75,6 +76,7 @@ void Executor::nickCommand(std::string create_time) {
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + nick + " :Your host is irc.seoul42.com\r\n");
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + nick + " :This server was created " + create_time + "\r\n");
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + nick + " :irc.seoul42.com 1.0\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(CLIENT) + " MODE " + nick + "\r\n");
 				_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
 				_clnt->setPing(false);
 			} else if (!_clnt->getUsername().empty()) {
@@ -104,6 +106,7 @@ void Executor::userCommand(std::string create_time) {
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 002 " + _clnt->getNickname() + " :Your host is irc.seoul42.com\r\n");
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 003 " + _clnt->getNickname() + " :This server was created " + create_time + "\r\n");
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 004 " + _clnt->getNickname() + " :irc.seoul42.com 1.0\r\n");
+				_data_manager->sendToClient(_clnt, makeSource(CLIENT) + " MODE " + _clnt->getNickname() + "\r\n");
 			_data_manager->sendToClient(_clnt, "PING :ping pong\r\n");
 			_clnt->setPing(false);
 		}
@@ -181,7 +184,7 @@ void Executor::joinCommand() {
 					_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 475 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+k)\r\n");
 					continue ;
 				}
-			} else if (chan->getLimit() > 0 && chan->getClientNum() >= chan->getLimit()) {
+			} else if (chan->getLimit() > 0 && (int)chan->getClientNum() >= chan->getLimit()) {
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 471 " + _clnt->getNickname() + " " + chans[i] + " :Cannot join channel (+l)\r\n");
 				continue ;
 			} else if (chan->getInviteOnly()) {
@@ -513,6 +516,10 @@ void Executor::privmsgCommand() {
 	} catch(const std::exception& e) {
 		_data_manager->sendToClient(_clnt, e.what());
 	}
+}
+
+void Executor::nonCommand() {
+	_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 421 " + _clnt->getNickname() + " " + getCommand() + " :Unknown command\r\n");
 }
 
 std::string Executor::makeSource(bool is_clnt) {
