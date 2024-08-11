@@ -50,7 +50,7 @@ void Executor::passCommand(std::string password) {
 void Executor::nickCommand(std::string create_time) {
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() != 1) {
 			throw std::logic_error(makeSource(SERVER) + " 431 " + _clnt->getNickname() + " :No nickname given\r\n");
 		}
@@ -93,7 +93,7 @@ void Executor::nickCommand(std::string create_time) {
 void Executor::userCommand(std::string create_time) {
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() != 4) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " USER :Not enough parameters\r\n");
 		} else if (!_clnt->getUsername().empty()) {
@@ -118,7 +118,7 @@ void Executor::userCommand(std::string create_time) {
 void Executor::pingCommand() {
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() != 1) {
 			throw std::logic_error(makeSource(SERVER) + " 409 " + _clnt->getNickname() + " :No origin specified\r\n");
 		}
@@ -131,7 +131,7 @@ void Executor::pingCommand() {
 void Executor::pongCommand() {
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() != 1) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
 		} else if (getParams(0) == "ping pong") {
@@ -164,7 +164,7 @@ void Executor::joinCommand() {
     }
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.empty()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " JOIN :Not enough parameters\r\n");
 		}
@@ -243,7 +243,7 @@ void Executor::partCommand() {
 	}
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.empty()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PART :Not enough parameters\r\n");
 		}
@@ -270,7 +270,7 @@ void Executor::topicCommand() {
 	std::string topic(getParams(1));
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() < 1) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " TOPIC :Not enough parameters\r\n");
 		}
@@ -310,7 +310,7 @@ void Executor::inviteCommand() {
 	}
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() < 2) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " INVITE :Not enough parameters\r\n");
 		} else if (!invite_clnt) {
@@ -345,7 +345,7 @@ void Executor::kickCommand() {
 	}
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() < 2) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " KICK :Not enough parameters\r\n");
 		} else if (!chan) {
@@ -376,7 +376,7 @@ void Executor::modeCommand() {
 	}
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (chan == nullptr) {
 			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + channel_name + " :No such channel\r\n");
 		} else if (_params.size() == 1) {
@@ -486,7 +486,7 @@ void Executor::privmsgCommand() {
 	}
 	try {
 		if (!_clnt->getPassed()) {
-			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PASS :Not enough parameters\r\n");
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() < 2) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PRIVMSG :Not enough parameters\r\n");
 		} else {
@@ -519,7 +519,15 @@ void Executor::privmsgCommand() {
 }
 
 void Executor::nonCommand() {
-	_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 421 " + _clnt->getNickname() + " " + getCommand() + " :Unknown command\r\n");
+	try {
+		if (!_clnt->getPassed()) {
+			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
+		}
+		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 421 " + _clnt->getNickname() + " " + getCommand() + " :Unknown command\r\n");
+	} catch (std::exception &e) {
+		_data_manager->sendToClient(_clnt, e.what());
+	}
+
 }
 
 std::string Executor::makeSource(bool is_clnt) {
