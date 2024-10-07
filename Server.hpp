@@ -40,10 +40,6 @@ public:
 
 	void parsing(Client *clnt);
 
-	// JOIN
-	void joinChannel(Client *clnt, Executor executor);
-
-	void sendToAll(std::string _message);
 	void sendToClient(Client *sender, std::string const &receiver, std::string message);
 
 	std::string getCreated();

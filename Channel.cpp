@@ -14,7 +14,7 @@ void Channel::setKey(std::string const &key) {
 	_key = key;
 }
 
-void Channel::setLimit(size_t limit) {
+void Channel::setLimit(int limit) {
 	_limit = limit;
 }
 

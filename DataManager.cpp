@@ -49,27 +49,6 @@ std::map<int, Client *> &DataManager::getClients() {
 	return _clients;
 }
 
-int DataManager::setClientNickname(Client *clnt, Executor executor) {
-	std::string nickname = executor.getParams(0);
-	std::cout << "nickname: " << nickname << std::endl;
-	
-	// 중복 검사
-	int fd = getFdByNickname(nickname);
-	if (fd != -1 && fd != clnt->getFd()) {
-		return ERR_NICKNAMEINUSE;
-	}
-	clnt->setNickname(nickname);
-	return SUCCESS;
-}
-
-
-void DataManager::setClientUsername(Client *clnt, Executor executor) {
-	std::string username = executor.getParams(0);
-	std::string realname = executor.getParams(3);
-	clnt->setUsername(username);
-	clnt->setRealname(realname);
-}
-
 void DataManager::addChannel(Channel *channel) {
 	_channels[channel->getName()] = channel;
 }
@@ -94,14 +73,6 @@ std::map<std::string, Channel *> &DataManager::getChannels() {
 	return _channels;
 }
 
-void DataManager::getChannelList() {
-	std::map<std::string, Channel *>::iterator it;
-	for (it = _channels.begin(); it != _channels.end(); it++) {
-		// 출력 형식 여기!
-		std::cout << it->first << std::endl;
-	}
-}
-
 void DataManager::sendToClient(Client *clnt, std::string message) {
 	clnt->setSendBuf(message);
 	_kq->addEvent(clnt->getFd(), EVFILT_WRITE);
@@ -116,35 +87,6 @@ void DataManager::sendToChannel(Channel *chan, std::string message, int except)
 		}
 		sendToClient(getClient(fds[i]), message);
 	}
-}
-
-void DataManager::sendToAll(std::string message) {
-	for (std::map<int, Client *>::iterator iter = _clients.begin(); iter != _clients.end(); iter++) {
-		std::cout << iter->second->getNickname() << std::endl;
-		sendToClient(iter->second, message);
-	}
-}
-
-int DataManager::partChannel(Client *clnt, Executor executor) {
-	std::string channel = executor.getParams(0);
-	Channel *chan = getChannel(channel);
-	if (chan == NULL) {
-		return ERR_NOSUCHCHANNEL;
-	}
-	chan->delClient(clnt->getFd());
-	return SUCCESS;
-}
-
-int DataManager::inviteChannel(Client *clnt, Executor executor) {
-	std::string channel = executor.getParams(0);
-	std::string nickname = executor.getParams(1);
-	Channel *chan = getChannel(channel);
-	if (chan == NULL) {
-		return ERR_NOSUCHCHANNEL;
-	}
-	int fd = clnt->getFd();
-	chan->inviteClient(fd);
-	return SUCCESS;
 }
 
 bool DataManager::isChannelOperator(Channel *chan, Client *clnt) {

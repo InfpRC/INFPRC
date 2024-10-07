@@ -23,7 +23,7 @@ void Kqueue::delEvent(int fd, int filter) {
 }
 
 void Kqueue::setTimer(int fd) {
-	EV_SET(&change, fd, EVFILT_TIMER, EV_ADD|EV_ENABLE, 0, 300000, NULL);
+	EV_SET(&change, fd, EVFILT_TIMER, EV_ADD|EV_ENABLE, 0, 600000, NULL);
 	change_list.push_back(change);
 }
 

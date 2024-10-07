@@ -117,7 +117,7 @@ void Executor::userCommand(std::string create_time) {
 
 void Executor::pingCommand() {
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() != 1) {
 			throw std::logic_error(makeSource(SERVER) + " 409 " + _clnt->getNickname() + " :No origin specified\r\n");
@@ -130,7 +130,7 @@ void Executor::pingCommand() {
 
 void Executor::pongCommand() {
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() != 1) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PONG :Not enough parameters\r\n");
@@ -163,7 +163,7 @@ void Executor::joinCommand() {
         keys.push_back(token);
     }
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.empty()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " JOIN :Not enough parameters\r\n");
@@ -193,19 +193,16 @@ void Executor::joinCommand() {
 					continue ;
 				}
 			}
+			if (_data_manager->isChannelMember(chan, _clnt)) {
+				return ;
+			}
 			_data_manager->addClientToChannel(_clnt, chan, role);
-			/* join reply message */
-			// sendToChannel 사용!
 			_data_manager->sendToChannel(chan, makeSource(CLIENT) + " JOIN :" + chans[i] + "\r\n", -1);
 			
-			// join한 클라이언트에게 전송
 			if (!chan->getTopic().empty()) {
-				// 1. RPL_TOPIC (332): 채널의 주제를 전송합니다. 주제가 없을 경우 전송되지 않을 수 있습니다.
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 332 " + _clnt->getNickname() + " " + chans[i] + " :" + chan->getTopic() + "\r\n");
-				// 2. RPL_TOPICWHOTIME (333): 주제를 설정한 사용자와 시간을 전송합니다. (선택적)
 				_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 333 " + _clnt->getNickname() + " " + chans[i] + " " + chan->getTopicAuthor() + " " + chan->getTopicCreated() + "\r\n");
 			}
-			// RPL_NAMREPLY (353): 채널에 현재 참여하고 있는 클라이언트들의 리스트를 전송합니다.
 			size_t client_number = 0;
 			while (client_number < chan->getClientNum()) {
 				std::string chan_clnt_list = makeSource(SERVER) + " 353 " + _clnt->getNickname() + " = " + chans[i] + " :";
@@ -224,7 +221,6 @@ void Executor::joinCommand() {
 				}
 				_data_manager->sendToClient(_clnt, chan_clnt_list + "\r\n");
 			}
-			// RPL_ENDOFNAMES (366): 클라이언트 리스트의 끝을 알리는 메시지입니다.
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 366 " + _clnt->getNickname() + " " + chans[i] + " :End of /NAMES list.\r\n");
 			chan->delInvitedClient(_clnt->getFd());
 		}
@@ -242,7 +238,7 @@ void Executor::partCommand() {
 		chans.push_back(token);
 	}
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.empty()) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PART :Not enough parameters\r\n");
@@ -269,7 +265,7 @@ void Executor::topicCommand() {
 	std::string chan_name(getParams(0));
 	std::string topic(getParams(1));
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() < 1) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " TOPIC :Not enough parameters\r\n");
@@ -284,7 +280,7 @@ void Executor::topicCommand() {
 			if (chan->getTopic().empty()) {
 				throw std::logic_error(makeSource(SERVER) + " 331 " + _clnt->getNickname() + " " + chan_name + " No topic is set\r\n");
 			}
-			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 332 " + _clnt->getNickname() + " " + chan_name + " " + topic + "\r\n");
+			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 332 " + _clnt->getNickname() + " " + chan_name + " " + chan->getTopic() + "\r\n");
 			_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 333 " + _clnt->getNickname() + " " + chan_name + " " + chan->getTopicAuthor() + chan->getTopicCreated() + "\r\n");
 		} else if (!_data_manager->isChannelMember(chan, _clnt)) {
 			throw std::logic_error(makeSource(SERVER) + " 442 " + _clnt->getNickname() + " " + chan_name + " :You're not on that channel\r\n");
@@ -309,7 +305,7 @@ void Executor::inviteCommand() {
 		chan = _data_manager->getChannel(chan_name.substr(1));
 	}
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() < 2) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " INVITE :Not enough parameters\r\n");
@@ -344,7 +340,7 @@ void Executor::kickCommand() {
 		user = user.substr(0, comma);
 	}
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() < 2) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " KICK :Not enough parameters\r\n");
@@ -375,7 +371,7 @@ void Executor::modeCommand() {
 		return;
 	}
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (chan == nullptr) {
 			throw std::logic_error(makeSource(SERVER) + " 403 " + _clnt->getNickname() + " " + channel_name + " :No such channel\r\n");
@@ -485,7 +481,7 @@ void Executor::privmsgCommand() {
 		receivers.push_back(token);
 	}
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		} else if (_params.size() < 2) {
 			throw std::logic_error(makeSource(SERVER) + " 461 " + _clnt->getNickname() + " PRIVMSG :Not enough parameters\r\n");
@@ -520,7 +516,7 @@ void Executor::privmsgCommand() {
 
 void Executor::nonCommand() {
 	try {
-		if (!_clnt->getPassed()) {
+		if (!_clnt->getPassed() || _clnt->getUsername().empty() || _clnt->getNickname() == "*") {
 			throw std::logic_error(makeSource(SERVER) + " 451 " + _clnt->getNickname() + " :You have not registered\r\n");
 		}
 		_data_manager->sendToClient(_clnt, makeSource(SERVER) + " 421 " + _clnt->getNickname() + " " + getCommand() + " :Unknown command\r\n");

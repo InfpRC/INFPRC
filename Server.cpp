@@ -34,7 +34,6 @@ void Server::makeNewConnection() {
 	_data_manager.addClient(clnt);
 	_kq.addEvent(clnt_sock, EVFILT_READ);
 	_kq.setTimer(clnt_sock);
-	std::cout << "connected client: " << clnt_sock << std::endl;
 }
 
 void Server::eventReadExec(struct kevent event) {
@@ -42,7 +41,6 @@ void Server::eventReadExec(struct kevent event) {
 	if (clnt != NULL) {
 		int result = clnt->recvSocket();
 		if (result == EOF) {
-			std::cout << "closed client read: " << clnt->getFd() << std::endl;
 			_data_manager.sendToClientChannels(clnt, ":" + clnt->getNickname() + "!" + clnt->getUsername() + "@" + clnt->getIp() + " QUIT :Client Disconnected\r\n");
 			clnt->setPassed(false);
 			_kq.delEvent(clnt->getFd(), EVFILT_READ);
@@ -62,7 +60,7 @@ void Server::eventWriteExec(struct kevent event) {
 			if (clnt->getPassed()) {
 				_kq.addEvent(clnt->getFd(), EVFILT_READ);
 			} else {
-				std::cout << "closed client write: " << clnt->getFd() << std::endl;
+				// std::cout << "closed client: " << clnt->getFd() << std::endl;
 				std::set<std::string> chans = clnt->getJoinedChannels();
 				for (std::set<std::string>::iterator it = chans.begin(); it != chans.end(); ++it) {
 					Channel *chan = _data_manager.getChannel(*it);
@@ -99,7 +97,7 @@ void Server::eventTimerExec(struct kevent event) {
 
 void Server::parsing(Client *clnt) {
 	while (clnt->getRecvBuf().size()) {
-		std::cout << "receive: " << clnt->getRecvBuf();
+		// std::cout << "receive: " << clnt->getRecvBuf();
 		Executor executor(clnt, &_data_manager);
 		std::string command = executor.getCommand();
 		if (command == "PASS") {
@@ -131,18 +129,13 @@ void Server::parsing(Client *clnt) {
 		} else {
 			executor.nonCommand();
 		}
-		std::cout << clnt->getSendBuf();
+		// std::cout << clnt->getSendBuf();
 	}
 }
 
 std::string Server::getCreated() {
-    // tm 구조체 포인터 생성, time_t를 변환하여 UTC 시간으로 설정
     struct tm* tm_info = std::localtime(&_created);
-    
-    // 날짜 및 시간 포맷 설정
     char buffer[80];
     std::strftime(buffer, 80, "%a %b %d %Y at %H:%M:%S KST", tm_info);
-    
-    // 결과를 std::string으로 반환
     return std::string(buffer);
 }

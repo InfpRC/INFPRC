@@ -34,10 +34,6 @@ public:
 	int getFdByNickname(std::string nickname);
 	std::map<int, Client *> &getClients();
 
-	int setClientNickname(Client *clnt, Executor executor);
-	void setClientUsername(Client *clnt, Executor executor);
-
-
 
 	// Channels
 	void addChannel(Channel *channel);
@@ -45,16 +41,9 @@ public:
 
 	Channel *getChannel(std::string name);
 	std::map<std::string, Channel *> &getChannels();
-	void getChannelList();
 
-	int joinChannel(Client *clnt, Executor executor);
-	int partChannel(Client *clnt, Executor executor);
-	int inviteChannel(Client *clnt, Executor executor);
-	int kickChannel(Client *clnt, Executor executor);
 	void sendToClient(Client *clnt, std::string message);
 	void sendToChannel(Channel *chan, std::string message, int except);
-
-	void sendToAll(std::string message);
 
 	bool isChannelOperator(Channel *chan, Client *clnt);
 	bool isChannelMember(Channel *chan, Client *clnt);

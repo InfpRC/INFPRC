@@ -35,7 +35,7 @@ public:
 
 	void setName(std::string const &name);
 	void setKey(std::string const &key);
-	void setLimit(size_t limit);
+	void setLimit(int limit);
 	void setInviteOnly(bool inviteOnly);
 	void setTopicOnly(bool inviteOnly);
 	void setTopic(std::string const &topic, std::string author);
